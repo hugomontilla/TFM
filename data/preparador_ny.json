@@ -1,0 +1,336 @@
+{
+  "fecha_referencia": "2021-02-05",
+  "amenities_comunes": [
+    "long term stays allowed",
+    "heating",
+    "kitchen",
+    "essentials",
+    "smoke alarm",
+    "air conditioning",
+    "hangers",
+    "carbon monoxide alarm",
+    "tv",
+    "dedicated workspace",
+    "hair dryer",
+    "shampoo",
+    "iron",
+    "hot water",
+    "refrigerator",
+    "dishes and silverware",
+    "washer",
+    "dryer",
+    "cooking basics",
+    "microwave",
+    "stove",
+    "fire extinguisher",
+    "oven",
+    "free street parking",
+    "coffee maker",
+    "bed linens",
+    "first aid kit",
+    "lock on bedroom door",
+    "extra pillows and blankets",
+    "elevator",
+    "private entrance",
+    "cable tv",
+    "dishwasher",
+    "luggage dropoff allowed",
+    "host greets you",
+    "lockbox",
+    "gym",
+    "bathtub",
+    "patio or balcony",
+    "paid parking off premises",
+    "garden or backyard",
+    "shower gel",
+    "free parking on premises",
+    "breakfast",
+    "room-darkening shades",
+    "ethernet connection",
+    "keypad",
+    "freezer",
+    "indoor fireplace",
+    "baking sheet",
+    "laundromat nearby",
+    "single level home",
+    "cleaning before checkout",
+    "building staff",
+    "bbq grill",
+    "pack \\u2019n play/travel crib"
+  ],
+  "property_types_frecuentes": [
+    "Entire apartment",
+    "Private room in apartment",
+    "Private room in house",
+    "Private room in townhouse",
+    "Entire condominium",
+    "Entire house",
+    "Entire loft",
+    "Entire townhouse",
+    "Shared room in apartment",
+    "Private room in condominium",
+    "Entire serviced apartment",
+    "Private room in loft",
+    "Room in boutique hotel",
+    "Room in hotel",
+    "Entire guest suite"
+  ],
+  "medianas_bedrooms": [
+    {
+      "room_type": "Entire place",
+      "accommodates": 1,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 2,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 3,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 4,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 5,
+      "bedrooms": 2.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 6,
+      "bedrooms": 2.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 7,
+      "bedrooms": 3.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 8,
+      "bedrooms": 3.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 9,
+      "bedrooms": 3.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 10,
+      "bedrooms": 4.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 11,
+      "bedrooms": 4.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 12,
+      "bedrooms": 4.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 13,
+      "bedrooms": 4.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 14,
+      "bedrooms": 5.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 15,
+      "bedrooms": 5.0
+    },
+    {
+      "room_type": "Entire place",
+      "accommodates": 16,
+      "bedrooms": 5.0
+    },
+    {
+      "room_type": "Hotel room",
+      "accommodates": 1,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Hotel room",
+      "accommodates": 2,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Hotel room",
+      "accommodates": 3,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Hotel room",
+      "accommodates": 4,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Hotel room",
+      "accommodates": 6,
+      "bedrooms": 1.5
+    },
+    {
+      "room_type": "Hotel room",
+      "accommodates": 8,
+      "bedrooms": 4.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 1,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 2,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 3,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 4,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 5,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 6,
+      "bedrooms": 2.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 7,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 8,
+      "bedrooms": 3.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 9,
+      "bedrooms": 2.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 10,
+      "bedrooms": 2.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 11,
+      "bedrooms": 3.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 12,
+      "bedrooms": 3.5
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 13,
+      "bedrooms": 3.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 14,
+      "bedrooms": 7.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 15,
+      "bedrooms": 2.0
+    },
+    {
+      "room_type": "Private room",
+      "accommodates": 16,
+      "bedrooms": 5.0
+    },
+    {
+      "room_type": "Shared room",
+      "accommodates": 1,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Shared room",
+      "accommodates": 2,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Shared room",
+      "accommodates": 3,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Shared room",
+      "accommodates": 4,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Shared room",
+      "accommodates": 5,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Shared room",
+      "accommodates": 6,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Shared room",
+      "accommodates": 8,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Shared room",
+      "accommodates": 10,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Shared room",
+      "accommodates": 12,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Shared room",
+      "accommodates": 13,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Shared room",
+      "accommodates": 15,
+      "bedrooms": 1.0
+    },
+    {
+      "room_type": "Shared room",
+      "accommodates": 16,
+      "bedrooms": 1.0
+    }
+  ],
+  "medianas_bedrooms_room_type": {
+    "Entire place": 1.0,
+    "Hotel room": 1.0,
+    "Private room": 1.0,
+    "Shared room": 1.0
+  }
+}

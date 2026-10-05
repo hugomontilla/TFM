@@ -1,0 +1,14 @@
+# Entorno y credenciales
+.venv/
+.kaggle/
+__pycache__/
+*.pyc
+
+# Datos en bruto (pesados, descargables de Kaggle)
+data/listings.csv
+data/reviews.csv
+
+# Sistema / IDE
+.DS_Store
+Thumbs.db
+.ipynb_checkpoints/

@@ -1,0 +1,22 @@
+# Análisis y Manipulación de Datos
+pandas
+numpy
+
+# Visualización de Datos
+matplotlib
+seaborn
+
+# Modelado Estadístico y Aprendizaje Automático
+scikit-learn
+scipy
+statsmodels
+catboost
+# FAMD para kNN con datos mixtos (Modelado §8.1)
+prince==0.21.0
+
+# Exportación del dataset de modelado (Parquet)
+pyarrow
+
+# Ejecución de Jupyter Notebooks en el entorno
+ipykernel
+pycountry
