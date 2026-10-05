@@ -39,7 +39,7 @@ SEMILLA = 42
 N_FOLDS = 5
 TARGET = 'log_price'
 
-# Busqueda de CatBoost (Modelado §10.3 y Busqueda_CatBoost_colab.ipynb): una sola definicion para los dos notebooks.
+# Busqueda de CatBoost (Modelado, seccion 10.3 y Busqueda_CatBoost_colab.ipynb): una sola definicion para los dos notebooks.
 # 10 candidatos (ParameterSampler con semilla fija da los mismos primeros)
 ESPACIO_CATBOOST = {
     'learning_rate': loguniform(0.04, 0.2),
@@ -471,7 +471,7 @@ def _a_float(x: np.ndarray | pd.DataFrame) -> np.ndarray:
 
 
 def anadir_interacciones(X: pd.DataFrame) -> pd.DataFrame:
-    """Interacciones del modelo L3: la capacidad y el distrito cambian de efecto segun el tipo de habitacion (H-013).
+    """Interacciones del modelo L3: la capacidad y el distrito cambian de efecto segun el tipo de habitacion.
 
     No aprende nada de los datos (las categorias de room_type son fijas), asi que no hay riesgo de fuga.
     Requiere room_type en X. Devuelve una copia de X con las interacciones añadidas al final.
@@ -503,7 +503,7 @@ CV_BARRIO_ADMITE_DIVISOR = _acepta_cv_como_divisor()
 def _codificador_barrio() -> TargetEncoder:
     # Un TargetEncoder nuevo para cada preprocesador que codifica neighbourhood (preprocesador_lineal y
     # preprocesador_arboles con barrio='target'); asi los dos usan la misma configuracion.
-    # cross-fitting por filas, no por anfitrion: fuga menor entre anuncios gemelos del train (H-040)
+    # cross-fitting por filas, no por anfitrion: fuga menor entre anuncios gemelos del train
     if CV_BARRIO_ADMITE_DIVISOR:
         return TargetEncoder(cv=KFold(N_FOLDS, shuffle=True, random_state=SEMILLA))
     # Con un objetivo continuo, TargetEncoder usa internamente KFold(cv, shuffle, random_state): el mismo reparto

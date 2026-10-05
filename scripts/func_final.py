@@ -1,4 +1,4 @@
-"""Funciones del modelo final (Modelo_final.ipynb y Modelo_final_HGB.ipynb): hiperparametros desde el registro,
+"""Funciones del modelo final (4-MODELO_FINAL.ipynb y Modelo_final_HGB.ipynb): hiperparametros desde el registro,
 intervalo de confianza por anfitrion, calibracion CQR del intervalo de precio, error por segmento y prediccion de un
 anuncio en bruto.
 
@@ -122,7 +122,7 @@ def resumen_bootstrap(replicas: np.ndarray, valor: float) -> dict[str, float]:
 
 def error_por_segmento(datos: pd.DataFrame, pred_log: np.ndarray, columnas: list[str],
                        min_n: int = 30) -> pd.DataFrame:
-    """MAE (USD), mediana del error (USD), MAPE y n por segmento; las celdas con n < min_n quedan en NaN (H-014)."""
+    """MAE (USD), mediana del error (USD), MAPE y n por segmento; las celdas con n < min_n quedan en NaN."""
     tabla = datos[columnas].copy()
     precio, precio_pred = np.exp(datos[TARGET].to_numpy()), np.exp(pred_log)
     tabla['error_abs'] = np.abs(precio - precio_pred)

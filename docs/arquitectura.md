@@ -80,7 +80,7 @@ el precio; los notebooks 2 y 3 solo leen el train; el test solo lo abre el noteb
 
 ### 2.5 Documentación y roles (`docs/`, `.claude/skills/`, `.agents/skills/`)
 
-- `bitacora_decisiones.md`: decisiones vigentes y por qué. `hallazgos_y_pendientes.md`: hallazgos H-xxx y riesgos.
+- `bitacora_decisiones.md`: decisiones vigentes y por qué. `hallazgos_y_pendientes.md`: riesgos metodológicos y pendientes.
   `registro_experimentos.md`: experimentos. `Planes/`: planes de modelado, mejoras y modelo final. `INDICACIONES/`:
   enunciado del TFM, descripción del dataset y plantilla de portada. `Referencias/`: paper de referencia.
 - Skills de roles `tfm-director`, `tfm-ml-engineer`, `tfm-analista`, `tfm-juzgado` en `.claude/skills/`; skills
@@ -103,4 +103,4 @@ el precio; los notebooks 2 y 3 solo leen el train; el test solo lo abre el noteb
 - Modelo final: **HGB** (escenario B, 79 variables), RMSE en log: CV 0,419 ± 0,010, **test 0,424**; MAE test $49,
   mediana del error $21, MAPE 31%. Intervalo del 80% por CQR con cuantiles de HGB.
 - CatBoost (CV 0,416) se reporta como sensibilidad; el MLP está preparado en la carpeta de Colab y aplazado.
-- Pendiente: redacción de la memoria y cerrar los abiertos de `hallazgos_y_pendientes.md`.
+- Pendiente: redacción de la memoria y cerrar los pendientes de `hallazgos_y_pendientes.md`.

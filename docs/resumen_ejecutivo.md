@@ -1,6 +1,6 @@
 # Resumen ejecutivo — Predicción del precio de Airbnb en Nueva York
 
-*TFM Máster en Data Science y Big Data · Documento de seguimiento para la tutora*
+*TFM Máster en Data Science y Big Data. Documento de seguimiento para la tutora*
 
 ## 1. Qué problema resuelvo
 
@@ -58,9 +58,9 @@ Qué he aprendido en el camino:
   una selección de 71.
 - Conocer al anfitrión **sí vale**: sin el perfil (escenario A) el HGB pasa de 0,419 a 0,434.
 
-## 5. Modelo final: HGB
+## 5. Modelo final
 
-Elegí HGB y no CatBoost (que gana 0,0031 de RMSE, a ~1 error estándar) porque ajusta unas **16 veces más rápido**
+Elegí HGB y CatBoost (que gana 0,0031 de RMSE, a ~1 error estándar) porque ajusta unas **16 veces más rápido**
 y la diferencia es menor que la variación entre folds. Es una excepción a mi propia regla de elección, tomada
 después de ver la tabla de CV; la declaro como tal y reporto CatBoost como sensibilidad.
 
@@ -106,7 +106,7 @@ Variables individuales: huéspedes, tipo de propiedad, tipo de alojamiento, dorm
 3. La CQR con un solo conjunto de calibración es aproximada (anuncios correlacionados por anfitrión).
 4. Las comparaciones entre modelos usan folds que comparten train: los p-valores son orientativos.
 5. La permutación describe cómo usa las variables el modelo, no una relación causal.
-6. Decidí recortar CatBoost de 40 a 20 candidatos viendo resultados parciales.
+6. Recorté la búsqueda de CatBoost de 40 a 10 candidatos viendo resultados parciales (el óptimo era plano y elegir entre muchos sobreajusta la validación). El mejor de los 10 es el modelo ajustado, que no cambia.
 
 ## 7. Dónde me gustaría su orientación
 
