@@ -69,7 +69,7 @@ Qué se hace, qué modelos entran (F1) y la regla de que el test se abre una vez
   anfitrión), se calcula cuánto se quedan cortos los cuantiles y la corrección que lleva la cobertura al 80%.
 
 ### 3. Guardado del modelo (detalle en la sección 4 de este plan)
-`models/modelo_final.joblib`, `models/cuantiles.joblib`, `models/ficha_modelo.json`.
+`models/modelo_final_catboost.joblib`, `models/cuantiles_catboost.joblib`, `models/ficha_modelo_catboost.json`.
 
 ### 4. Evaluación en el test (única)
 - Carga del test, preparado con el preparador ajustado en el train (`listings_ny_modelado_test.parquet`).
@@ -105,7 +105,7 @@ Qué se hace, qué modelos entran (F1) y la regla de que el test se abre una vez
   dónde no (no linealidades, interacciones)?
 
 ### 8. Uso del modelo guardado
-- Se carga `modelo_final.joblib` en limpio y se predice un anuncio de ejemplo **en bruto** (una fila de
+- Se carga `modelo_final_catboost.joblib` en limpio y se predice un anuncio de ejemplo **en bruto** (una fila de
   `listings.csv`) con `predecir_precio`: precio mediano y el intervalo calibrado.
 - Comprobación: la predicción coincide con la del modelo en memoria.
 
@@ -135,7 +135,7 @@ Qué se hace, qué modelos entran (F1) y la regla de que el test se abre una vez
   son funciones con nombre, no lambdas, para que se puedan guardar.
 - **El preparador** (`PreparadorListings`, ya guardado en `data/preparador_ny.json`) convierte un anuncio en bruto
   en las variables del modelo. Cadena completa: anuncio bruto → preparador → `Pipeline` → `exp(ŷ)`.
-- **Ficha del modelo** (`models/ficha_modelo.json`): modelo y hiperparámetros, variables, versiones de Python,
+- **Ficha del modelo** (`models/ficha_modelo_catboost.json`): modelo y hiperparámetros, variables, versiones de Python,
   `scikit-learn`, `catboost` y `pandas`, métricas de CV y de test con su intervalo, corrección CQR, fecha y MD5 del
   train. Un `.joblib` solo se carga con seguridad con las mismas versiones: se fijan en `requirements.txt`.
 - Si el final es CatBoost, el envoltorio `RegresorCatBoost` se guarda igual con `joblib`. Además, como respaldo,
@@ -166,5 +166,5 @@ Total: **2-3 días de trabajo**, con poco cálculo. Encaja antes de la aprobaci�
 - Los hiperparámetros y las variables del modelo reentrenado coinciden con los de `Modelado` §11 (se comprueba
   el `repr` contra el registro).
 - Las métricas del test se calculan con la misma función `metricas` que la CV.
-- `modelo_final.joblib` se carga en una sesión limpia y predice igual que el modelo en memoria.
+- `modelo_final_catboost.joblib` se carga en una sesión limpia y predice igual que el modelo en memoria.
 - Cada sección cierra con `#### Conclusiones:` con números reales.

@@ -1,14 +1,14 @@
 {
   "modelo": "RegresorCatBoost (RMSE sobre log(price)) + dos cuantiles CatBoost (80% del train) calibrados con CQR en el fold 0 de calibracion",
   "hiperparametros": {
-    "bagging_temperature": 0.6183860093330873,
+    "bagging_temperature": 1.0,
     "depth": 7,
-    "early_stopping_rounds": null,
-    "iterations": 1890,
-    "l2_leaf_reg": 28.336828367886547,
-    "learning_rate": 0.058585870719555934,
+    "early_stopping_rounds": 65,
+    "iterations": 3000,
+    "l2_leaf_reg": 10.840415261631113,
+    "learning_rate": 0.0833372624461179,
     "random_state": 42,
-    "random_strength": 5.2466345336252855,
+    "random_strength": 1,
     "task_type": "CPU",
     "validacion_fraccion": 0.1
   },
@@ -94,42 +94,42 @@
     "am_pack_u2019n_play_travel_crib"
   ],
   "escenario": "B",
-  "correccion_cqr_log": 0.10988974257294437,
+  "correccion_cqr_log": 0.06747206390138416,
   "cobertura_nominal": 0.8,
   "metricas_cv": {
     "media": {
-      "rmse_log_val": 0.4160112657792564,
-      "mae_log_val": 0.3051345947553853,
-      "r2_log_val": 0.6577680600365868,
-      "mae_usd_val": 47.638390941593244,
-      "medae_usd_val": 21.58143395677626,
-      "mape_val": 0.3142449802265074
+      "rmse_log_val": 0.4162017261974274,
+      "mae_log_val": 0.30519288672571243,
+      "r2_log_val": 0.6574495214166324,
+      "mae_usd_val": 47.59378158759216,
+      "medae_usd_val": 21.495871934829015,
+      "mape_val": 0.31425914168612434
     },
     "sd": {
-      "rmse_log_val": 0.0071495525656934044,
-      "mae_log_val": 0.004745735098244464,
-      "r2_log_val": 0.008721787844841813,
-      "mae_usd_val": 2.559631228024356,
-      "medae_usd_val": 0.319079922847186,
-      "mape_val": 0.008315755807717547
+      "rmse_log_val": 0.0091013645126696,
+      "mae_log_val": 0.0065380123514874305,
+      "r2_log_val": 0.011118409018451536,
+      "mae_usd_val": 2.61617976987614,
+      "medae_usd_val": 0.5446902370777036,
+      "mape_val": 0.008813147030993194
     }
   },
   "metricas_test": {
-    "rmse_log_val": 0.42975094863890567,
-    "mae_log_val": 0.31189231140579915,
-    "r2_log_val": 0.6350417716069581,
-    "mae_usd_val": 50.215063603716274,
-    "medae_usd_val": 21.273383907791583,
-    "mape_val": 0.31270366290838986
+    "rmse_log_val": 0.42923029050046013,
+    "mae_log_val": 0.3107549658360097,
+    "r2_log_val": 0.6359255549490611,
+    "mae_usd_val": 49.92867782327776,
+    "medae_usd_val": 21.111999183715056,
+    "mape_val": 0.31025618190482357
   },
-  "md5_train_parquet": "33b8368667c428a1014afefdc838056e",
-  "md5_test_parquet": "6efbad2d0dd977cb41d7feb0ee114f38",
+  "md5_train_particion": "33b8368667c428a1014afefdc838056e",
+  "md5_test_particion": "6efbad2d0dd977cb41d7feb0ee114f38",
   "versiones": {
     "python": "3.13.14",
     "catboost": "1.2.10",
     "scikit-learn": "1.9.0",
     "pandas": "3.0.5"
   },
-  "fecha": "2026-10-03",
+  "fecha": "2026-10-05",
   "nota": "exp(prediccion) estima la MEDIANA del precio, no la media."
 }

@@ -70,10 +70,11 @@ NULOS_ESPERADOS = {'antiguedad_host_anios', 'host_total_listings_count', 'host_r
                    'host_acceptance_rate', 'reputacion_cartera'}
 
 DATA_DIR = Path(__file__).resolve().parent.parent / 'data'
-RUTA_PREPARADOR = DATA_DIR / 'preparador_ny.json'
+DIR_MODELADO = DATA_DIR / 'modelado'
+RUTA_PREPARADOR = DIR_MODELADO / 'preparador.json'
 RUTAS_MODELADO = {
-    'train': DATA_DIR / 'listings_ny_modelado_train.parquet',
-    'test': DATA_DIR / 'listings_ny_modelado_test.parquet',
+    'train': DIR_MODELADO / 'train.parquet',
+    'test': DIR_MODELADO / 'test.parquet',
 }
 
 
@@ -94,6 +95,7 @@ def parsear_amenities(cadena):
 
 
 def crear_columna_amenity(amenity):
+    """Nombre de la columna binaria de una amenity ('am_' mas el nombre sin simbolos)."""
     return 'am_' + re.sub(r'[^a-z0-9]+', '_', amenity).strip('_')
 
 
@@ -128,6 +130,7 @@ def reputacion_cartera(listings):
 
 
 def cargar_listings_ny(ruta_listings):
+    """Lee listings.csv y se queda solo con los anuncios de Nueva York."""
     listings = pd.read_csv(ruta_listings, low_memory=False)
     return listings[listings['city'] == CIUDAD].reset_index(drop=True)
 
@@ -139,6 +142,7 @@ def limpiar_registros(listings):
 
 
 def es_precio_bloqueo(datos):
+    """Mascara de los precios de bloqueo: 9.999 o mas, o habitacion privada o compartida de mas de 1.000."""
     return (datos[COL_TARGET] >= PRECIO_BLOQUEO) | (
         datos['room_type'].isin(HABITACIONES) & (datos[COL_TARGET] > MAX_PRECIO_HABITACION))
 
@@ -155,6 +159,7 @@ class PreparadorListings(BaseEstimator, TransformerMixin):
     """Construye las variables candidatas a partir de filas de listings.csv en bruto."""
 
     def fit(self, X, y=None):
+        """Aprende del train la ventana de amenities, los tipos de propiedad frecuentes y las medianas de bedrooms."""
         conjuntos = X['amenities'].map(lambda c: set(parsear_amenities(c)))
         presencia = (pd.Series(Counter(a for s in conjuntos for a in s)) / len(X)).sort_values(ascending=False)
         self.amenities_comunes_ = presencia[presencia.between(MIN_PRESENCIA, MAX_PRESENCIA)].index.tolist()
@@ -182,6 +187,7 @@ class PreparadorListings(BaseEstimator, TransformerMixin):
         }
 
     def transform(self, X):
+        """Convierte anuncios en bruto en las variables de modelado, usando solo lo aprendido en fit."""
         datos = X.copy()
 
         # Tipos
@@ -249,6 +255,7 @@ class PreparadorListings(BaseEstimator, TransformerMixin):
 
     @classmethod
     def cargar(cls, ruta):
+        """Reconstruye un preparador ya ajustado desde el JSON que escribe guardar."""
         p = json.loads(Path(ruta).read_text(encoding='utf-8'))
         preparador = cls()
         preparador.amenities_comunes_ = p['amenities_comunes']
@@ -284,14 +291,14 @@ def preparar_dataset_modelado(train, test):
 
 
 def entrenar():
+    """Ajusta el preparador con el train y escribe en data/modelado/ los parquet de train y test y el preparador."""
     from particion_datos import cargar_conjunto  # importacion local: particion_datos importa este modulo
     conjuntos, preparador = preparar_dataset_modelado(cargar_conjunto('train'), cargar_conjunto('test'))
 
+    DIR_MODELADO.mkdir(exist_ok=True)
     for nombre, datos in conjuntos.items():
         datos.to_parquet(RUTAS_MODELADO[nombre], index=False)
         print(f'{nombre}: {datos.shape[0]:,} anuncios x {datos.shape[1]} columnas -> {RUTAS_MODELADO[nombre].name}')
-    (DATA_DIR / 'bloques_modelado.json').write_text(
-        json.dumps(preparador.bloques_, indent=2, ensure_ascii=False), encoding='utf-8')
     preparador.guardar(RUTA_PREPARADOR)
     print(f'Preparador ajustado con el train -> {RUTA_PREPARADOR.name}')
 

@@ -131,14 +131,14 @@
     "medae_usd_val": 21.116484088410857,
     "mape_val": 0.30856902149757215
   },
-  "md5_train_parquet": "33b8368667c428a1014afefdc838056e",
-  "md5_test_parquet": "6efbad2d0dd977cb41d7feb0ee114f38",
+  "md5_train_particion": "33b8368667c428a1014afefdc838056e",
+  "md5_test_particion": "6efbad2d0dd977cb41d7feb0ee114f38",
   "versiones": {
     "python": "3.13.14",
     "scikit-learn": "1.9.0",
     "pandas": "3.0.5",
     "numpy": "2.5.1"
   },
-  "fecha": "2026-10-02",
+  "fecha": "2026-10-05",
   "nota": "exp(prediccion) estima la MEDIANA del precio, no la media."
 }

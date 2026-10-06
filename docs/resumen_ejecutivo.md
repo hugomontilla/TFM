@@ -10,13 +10,13 @@ Dado un anuncio **nuevo** en Nueva York (sus características, su ubicación y e
 
 - **Datos:** `listings.csv` del dataset Airbnb 2008-2021. Empecé con 10 ciudades y acoté a Nueva York (precio en
   USD, `district` completo y efectos de ubicación que cambiaban de signo entre ciudades).
-- **Tamaño:** 36.922 anuncios válidos → **train 29.538 / test 7.384** (anfitriones distintos en cada lado).
+- **Tamaño:** 36.922 anuncios válidos → **train 29.538 / test 7.384** (anfitriones distintos en cada lado; `particion.json` registra 29.586 / 7.398 antes de la regla de bloqueo).
 
 ## 2. Cómo evito la fuga de información
 
 | Decisión | Motivo |
 |---|---|
-| Partición **antes** de mirar el precio, agrupada por `host_id` y estratificada por `room_type` × `district` | El 38% de los anuncios pertenece a carteras de varios y son casi gemelos; sin agrupar, la validación se infla |
+| Partición **antes** de mirar el precio, agrupada por `host_id` y estratificada por `room_type` × `district` | El 38,1% de los 36.922 anuncios pertenece a carteras de varios y son casi gemelos; sin agrupar, la validación se infla |
 | Todo lo que aprende de los datos (amenities frecuentes, medianas, codificación del barrio) se ajusta solo con train | Evita contaminar el test |
 | Sin reseñas ni variables derivadas del precio | Son posteriores a la publicación; un anuncio nuevo no las tiene |
 | Test abierto **una sola vez**, tras comprobar su MD5 | La elección del modelo se hace solo con validación cruzada |
@@ -42,7 +42,7 @@ Fuera por diseño: reseñas, `maximum_nights` (efecto explicable por composició
 | | mediana por tipo × capacidad | 0,535 | Lo que haría un anfitrión con una regla simple |
 | | mediana por barrio × tipo | 0,543 | Ni el barrio mejora la regla anterior |
 | Lineal | OLS con producto básico | 0,527 | |
-| | Ridge / ElasticNet (79 variables) | 0,433 | Regularizar mejora, aunque poco |
+| | ElasticNet (79 variables) | 0,434 | Regularizar mejora, aunque poco; con las 71 seleccionadas, 0,439 |
 | kNN | subconjunto de 5 variables (k = 75) | 0,474 | Tasador «por comparables» |
 | | PCA / FAMD / PCAmix + kNN | 0,479-0,482 | Reducir dimensión no ayuda |
 | Árbol CART | profundidad 10 | 0,472 | Inestable entre folds |

@@ -68,7 +68,7 @@ Hipótesis (qué mejora y en qué modelo) · Prueba (ID; fuera de A1-A12 = explo
 Resultado · Decisión (la cierra el alumno)
 ```
 
-Implementación: en `preparacion_datos.py` + `data/bloques_modelado.json`, regenerando el parquet con `python scripts/preparacion_datos.py` y
+Implementación: en `preparacion_datos.py` (propiedad `bloques_`), regenerando el parquet con `python scripts/preparacion_datos.py` y
 pasando `validar_dataset_modelado`. Lo que aprende del target (p. ej. `TargetEncoder`) va **siempre** en el
 `Pipeline` de modelado. Codificaciones de partida: plan §3.4; para cambiarlas, 2-3 alternativas con pros y
 contras aplicados a este dataset (220 barrios, 106 con N < 30, HGB admite 255 categorías).

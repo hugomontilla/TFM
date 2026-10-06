@@ -59,7 +59,7 @@ Tutor: aprobación antes del **2026-10-16**. Ya no queda ningún bloqueante del 
 | **H-027** | La reputación de cartera tiene señal marginal en NY (ρ = +0,15), pero no mejora el modelo. En cambio, el tamaño de la cartera sí mejora (0,006 de RMSE en log, consistente entre folds). | No se construye `reputacion_cartera`. Entra `n_anuncios_ny`. |
 | **H-008** | `privacy_premium` se calcula con el propio precio. | No se construye. |
 | **H-009 / H-002** | Las filas con `accommodates == 0` tienen todas `price == 0` y se descartaban por accidente. | Se eliminan de forma explícita (13 en NY). |
-| **H-020** | El 46% de los anuncios pertenece a anfitriones con varias propiedades, casi duplicados entre sí. | Split agrupado por `host_id`. |
+| **H-020** | El 38,1% de los 36.922 anuncios pertenece a anfitriones con varias propiedades, casi duplicados entre sí. | Split agrupado por `host_id`. |
 | **H-014** | Una media de puntuación por tramo salía de un único anuncio. | Toda tabla agregada lleva su `n` y enmascara las celdas pequeñas. |
 
 ### Variables y calidad de datos

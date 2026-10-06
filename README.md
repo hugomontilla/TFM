@@ -10,7 +10,7 @@ precio a un anfitrión. El objetivo del modelo es `log(price)`; `exp(ŷ)` estima
 
 - **Datos:** dataset de Airbnb 2008-2021 (`listings.csv`, `reviews.csv`). Se empezó con 10 ciudades y se acotó a
   Nueva York, que tiene precio en USD, `district` completo y efectos de ubicación coherentes.
-- **Tamaño:** 36.922 anuncios válidos → 29.538 en train y 7.384 en test (anfitriones distintos en cada lado).
+- **Tamaño:** 36.922 anuncios válidos → 29.538 en train y 7.384 en test (anfitriones distintos en cada lado; `particion.json` registra 29.586 / 7.398 antes de la regla de bloqueo).
 - **Variables:** 79 candidatas en cinco bloques: producto, ubicación, condiciones de reserva, perfil del anfitrión y
   56 amenities.
 
@@ -21,10 +21,10 @@ Error medido con el RMSE sobre `log(price)` (menor es mejor):
 | Modelo | RMSE log (validación cruzada) | RMSE log (test) | MAE en test |
 |---|---|---|---|
 | Mediana por tipo × capacidad (referencia) | 0,535 | — | — |
-| Ridge / ElasticNet | 0,433 | — | — |
+| Ridge / ElasticNet | 0,434 | — | — |
 | Random Forest | 0,428 | — | — |
 | **HGB** | 0,419 | **0,424** | $49 |
-| **CatBoost** | 0,416 | 0,430 | $50 |
+| **CatBoost** | 0,416 | 0,429 | $50 |
 
 - HGB y CatBoost son los dos finalistas y quedan empatados en la práctica; HGB se ajusta unas 16 veces más rápido.
 - El **producto** (tipo y capacidad) explica la mayor parte del precio, seguido de la **ubicación**; conocer al
@@ -37,10 +37,11 @@ Detalle completo en [docs/resumen_ejecutivo.md](docs/resumen_ejecutivo.md).
 ## Cómo está organizado
 
 ```
-data/        particion/ (train y test fijos), datasets de modelado en parquet, preparador y bloques de variables
-scripts/     preparacion_datos.py (limpieza y variables), particion_datos.py, func_modelado.py, func_final.py, ...
+data/        particion/ (train y test fijos con su MD5) y modelado/ (parquet preparados y preparador)
+scripts/     preparacion_datos.py (limpieza y variables), particion_datos.py, func_modelado.py, func_final.py, registro.py, config.py, ...
+.env         parámetros comunes del experimento (semilla, folds, cobertura del intervalo...)
 notebooks/   análisis y modelado, en orden numérico
-models/      modelos finales guardados (HGB y CatBoost), cuantiles y fichas
+models/      modelos finalistas guardados (CatBoost y HGB), cuantiles y fichas
 outputs/     registro de experimentos (experimentos.csv), folds de CV, importancias y resultados en test
 docs/        resumen ejecutivo, arquitectura, bitácora de decisiones, planes y enunciado
 ```
@@ -53,8 +54,7 @@ docs/        resumen ejecutivo, arquitectura, bitácora de decisiones, planes y 
 | `1-EXPLORACION` | Calidad de datos y creación de la partición train/test |
 | `2-ANALISIS` | EDA del precio, solo con train |
 | `3-MODELADO` | Referencias, lineal, kNN, árboles, ensembles, selección de variables y comparación |
-| `Modelo_final_HGB` | Modelo final HGB: intervalo CQR, evaluación en test, errores e interpretación |
-| `4-MODELO_FINAL` | Lo mismo con CatBoost (incluye SHAP) |
+| `4-MODELO_FINAL` | Los dos finalistas, CatBoost y HGB, con el mismo procedimiento: intervalo CQR, evaluación en test, errores, interpretación y una comparación final |
 
 ## Decisiones de diseño clave
 

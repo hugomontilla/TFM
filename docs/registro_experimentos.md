@@ -15,6 +15,8 @@ Resumen de los experimentos de modelado, generado a partir de `outputs/experimen
 
 ## 2. Modelos lineales
 
+Las filas con 80 variables (`L2_6` y `L5_*`) incluyen el bloque de amenities de lujo, retirado el 09-30: quedan como histórico y no se citan. La referencia vigente con todas las variables es `T7_elasticnet_01_completo` (79).
+
 | Experimento | Variables | RMSE log (media ± sd) | MAE | MAPE | Nombre en el registro |
 |---|---|---|---|---|---|
 | OLS con producto básico (tipo, huéspedes, dormitorios) | 3 | 0,527 ± 0,011 | $59 | 42% | `L1_producto_basico` |
@@ -103,14 +105,14 @@ Diferencia de RMSE en log al quitar cada bloque o variable frente al modelo comp
 
 La regla de decisión (fijada de antemano) y su resultado están en la bitácora. Con los hiperparámetros ajustados se repitió la comprobación en HGB (`F7_hgb_ajustado_*`): el modelo con las 79 variables gana a las versiones con menos variables, por eso los árboles usan las 79 variables.
 
-## 8. Resultados en el test (7.384 anuncios, evaluados una vez por finalista)
+## 8. Resultados en el test (7.384 anuncios, mismos 7.384 anuncios para los dos finalistas)
 
 | Métrica | HGB | CatBoost |
 |---|---|---|
-| RMSE en log | 0,424 | 0,430 |
-| R² en log | 0,645 | 0,635 |
-| MAE (USD) | 49,4 | 50,2 |
-| Error mediano (USD) | 21,1 | 21,3 |
-| MAPE | 30,9% | 31,3% |
+| RMSE en log | 0,424 | 0,429 |
+| R² en log | 0,645 | 0,636 |
+| MAE (USD) | 49,4 | 49,9 |
+| Error mediano (USD) | 21,1 | 21,1 |
+| MAPE | 30,9% | 31,0% |
 
-El test se ha abierto dos veces (una por finalista) y no se ha usado para elegir. Detalle en `docs/resumen_ejecutivo.md`.
+El test se evalúa en `4-MODELO_FINAL` para los dos finalistas a la vez y no se ha usado para elegir. Detalle en `docs/resumen_ejecutivo.md`.

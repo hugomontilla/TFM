@@ -4,14 +4,12 @@ preprocesadores por familia de modelo y comparaciones pareadas.
 Convenciones de los argumentos que se repiten:
     datos: DataFrame de modelado (cargar_modelado), con la columna TARGET y las variables de los bloques.
     folds: lista de Fold (cargar_folds); indices posicionales sobre las filas de datos.
-    bloques: {nombre del bloque: [columnas]}, leido de bloques_modelado.json.
+    bloques: {nombre del bloque: [columnas]}, los da PreparadorListings.bloques_.
 """
-import json
 import os
 import re
 from contextlib import nullcontext
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
 from time import perf_counter
 from typing import Literal
@@ -23,7 +21,12 @@ from scipy import stats
 from scipy.stats import loguniform, randint, uniform
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin, clone
 from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
 from sklearn.impute import SimpleImputer
+from sklearn.kernel_approximation import Nystroem
+from sklearn.linear_model import ElasticNet, LinearRegression, Ridge
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.svm import LinearSVR
 from sklearn.metrics import (mean_absolute_error, mean_absolute_percentage_error, mean_pinball_loss,
                              median_absolute_error, r2_score, root_mean_squared_error)
 from sklearn.model_selection import KFold, ParameterSampler, StratifiedGroupKFold, train_test_split
@@ -32,11 +35,11 @@ from sklearn.preprocessing import (FunctionTransformer, OneHotEncoder, OrdinalEn
                                    StandardScaler, TargetEncoder)
 from threadpoolctl import threadpool_limits
 
+from config import N_FOLDS, N_REPETICIONES_CV, SEMILLA
 from particion_datos import COL_GRUPO, estrato
-from preparacion_datos import DATA_DIR, RUTAS_MODELADO
+from registro import leer_experimento, registrar
+from preparacion_datos import RUTA_PREPARADOR, RUTAS_MODELADO, PreparadorListings
 
-SEMILLA = 42
-N_FOLDS = 5
 TARGET = 'log_price'
 
 # Busqueda de CatBoost (Modelado, seccion 10.3 y Busqueda_CatBoost_colab.ipynb): una sola definicion para los dos notebooks.
@@ -97,8 +100,7 @@ def cargar_modelado(conjunto: Literal['train', 'test'] = 'train') -> tuple[pd.Da
     """
     datos = pd.read_parquet(RUTAS_MODELADO[conjunto])
     datos[TARGET] = np.log(datos['price'])
-    bloques = json.loads((DATA_DIR / 'bloques_modelado.json').read_text(encoding='utf-8'))
-    return datos, bloques
+    return datos, PreparadorListings.cargar(RUTA_PREPARADOR).bloques_
 
 
 def columnas_de(bloques: dict[str, list[str]], nombres_bloque: list[str]) -> list[str]:
@@ -180,6 +182,7 @@ def cobertura_intervalo(y: np.ndarray, bajo: np.ndarray, alto: np.ndarray) -> fl
 
 
 def _sin_direcciones(texto: str) -> str:
+    """Quita las direcciones de memoria de un repr, que cambian en cada sesion."""
     # El repr de una funcion incluye su direccion de memoria, que cambia en cada sesion. Se usa en
     # descripcion_modelo (al escribir el registro) y en evaluar_registrado (al leerlo, por las filas antiguas)
     return re.sub(r' at 0x[0-9A-Fa-f]+', '', texto)
@@ -248,23 +251,6 @@ def evaluar(experimento: Experimento, datos: pd.DataFrame, folds: list[Fold], pa
     return pd.DataFrame(filas)
 
 
-def registrar(resultados: pd.DataFrame, ruta: Path) -> None:
-    """Añade los resultados al registro; si el experimento ya existia, sustituye sus filas para que re-ejecutar no duplique.
-
-    resultados: salida de evaluar. 
-    ruta: CSV del registro (outputs/experimentos.csv).
-    """
-    resultados = resultados.assign(fecha=datetime.now().isoformat(timespec='seconds'))
-    if ruta.exists():
-        previos = pd.read_csv(ruta)
-        previos = previos[~previos['experimento'].isin(resultados['experimento'].unique())]
-        resultados = pd.concat([previos, resultados], ignore_index=True)
-    # Se escribe en un temporal y se sustituye de una vez: si el proceso muere a mitad, el registro no se trunca
-    temporal = ruta.with_suffix('.tmp')
-    resultados.to_csv(temporal, index=False)
-    temporal.replace(ruta)
-
-
 def resumir(resultados: pd.DataFrame) -> pd.DataFrame:
     """Media y desviacion tipica entre folds de las metricas principales, por experimento.
 
@@ -296,21 +282,6 @@ def evaluar_registrado(experimento: Experimento, datos: pd.DataFrame, folds: lis
     resultados = evaluar(experimento, datos, folds, paralelo)
     registrar(resultados, ruta)
     return resultados
-
-
-def leer_experimento(nombre: str, ruta: Path, folds: list[Fold]) -> pd.DataFrame:
-    """Filas de un experimento ya registrado, sin recalcular nada. Falla si falta o no cubre los folds.
-
-    Para modelos que se entrenan fuera de este notebook (p. ej. CatBoost en Colab): evaluar_registrado los
-    recalcularia porque la descripcion del modelo cambia con el dispositivo.
-    """
-    previos = pd.read_csv(ruta) if ruta.exists() else pd.DataFrame(columns=['experimento'])
-    filas = previos[previos['experimento'] == nombre]
-    esperado = {(f.repeticion, f.fold) for f in folds}
-    if set(zip(filas.get('repeticion', []), filas.get('fold', []))) != esperado:
-        raise FileNotFoundError(f"Faltan resultados de '{nombre}' en {ruta.name}: ejecuta el notebook de Colab y "
-                                f"fusiona su registro (fusionar_registro)")
-    return filas.reset_index(drop=True)
 
 
 def buscar_hiperparametros(prefijo: str, construir, espacio: dict, n_iter: int, datos: pd.DataFrame,
@@ -363,37 +334,6 @@ def buscar_hiperparametros(prefijo: str, construir, espacio: dict, n_iter: int, 
     return pd.DataFrame(filas).sort_values('rmse_log_val')
 
 
-def fusionar_registro(destino: Path, origen: Path, archivar: str | None = None) -> list[str]:
-    """Incorpora al registro destino los experimentos de otro registro (p. ej. el de Colab).
-
-    Si un experimento esta en los dos, gana el de origen, igual que registrar. Es idempotente: repetir la fusion no
-    cambia nada. archivar: sufijo (p. ej. '__cpu'); si se indica, las filas del destino que se sustituyen y vienen de
-    otro modelo (distinta descripcion, p. ej. CPU frente a GPU) se conservan con ese sufijo en vez de perderse.
-    Devuelve los nombres de los experimentos que cambian en el destino.
-    """
-    nuevos = pd.read_csv(origen)
-    if not destino.exists():
-        nuevos.to_csv(destino, index=False)
-        return list(nuevos['experimento'].unique())
-    previos = pd.read_csv(destino)
-    cambian, archivadas = [], []
-    for nombre, filas in nuevos.groupby('experimento', sort=False):
-        antes = previos[previos['experimento'] == nombre]
-        if len(antes) and set(antes['modelo']) == set(filas['modelo']) and len(antes) == len(filas):
-            continue
-        cambian.append(nombre)
-        if archivar and len(antes):
-            archivadas.append(antes.assign(experimento=nombre + archivar))
-    # Un archivo de una fusion anterior con el mismo nombre se sustituye, no se duplica
-    nombres_archivo = {f['experimento'].iloc[0] for f in archivadas}
-    conservadas = previos[~previos['experimento'].isin(set(cambian) | nombres_archivo)]
-    resultado = pd.concat([conservadas] + archivadas + [nuevos[nuevos['experimento'].isin(cambian)]],
-                          ignore_index=True)
-    temporal = destino.with_suffix('.tmp')
-    resultado.to_csv(temporal, index=False)
-    temporal.replace(destino)
-    return cambian
-
 
 class MedianaPorGrupo(RegressorMixin, BaseEstimator):
     """Referencia ingenua: mediana del target por celda, bajando al nivel siguiente si la celda tiene menos de min_n.
@@ -409,11 +349,13 @@ class MedianaPorGrupo(RegressorMixin, BaseEstimator):
 
     def __init__(self, niveles: tuple[tuple[str, ...], ...] = (('room_type',),), min_n: int = 1,
                  tope_capacidad: int | None = None):
+        """Guarda los niveles de agrupacion, el minimo de anuncios por celda y el tope de capacidad."""
         self.niveles = niveles
         self.min_n = min_n
         self.tope_capacidad = tope_capacidad
 
     def _celdas(self, X: pd.DataFrame, nivel: tuple[str, ...]) -> pd.Series:
+        """Etiqueta de celda de cada fila para un nivel (concatena las columnas del nivel)."""
         partes = []
         for col in nivel:
             valores = X[col]
@@ -426,6 +368,7 @@ class MedianaPorGrupo(RegressorMixin, BaseEstimator):
         return clave
 
     def fit(self, X: pd.DataFrame, y: pd.Series | np.ndarray) -> 'MedianaPorGrupo':
+        """Calcula la mediana del target por celda en cada nivel y la mediana global."""
         y = pd.Series(np.asarray(y), index=X.index)
         self.mediana_global_ = float(y.median())
         self.tablas_ = []
@@ -435,6 +378,7 @@ class MedianaPorGrupo(RegressorMixin, BaseEstimator):
         return self
 
     def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """Predice con la celda mas fina que tenga muestra suficiente y baja de nivel si no la hay."""
         pred = pd.Series(self.mediana_global_, index=X.index)
         # Del nivel mas grueso al mas fino: cada nivel sobrescribe donde tiene una celda con muestra suficiente
         for nivel, tabla in reversed(list(zip(self.niveles, self.tablas_))):
@@ -459,12 +403,14 @@ INTERACCION_DISTRITO = 'room_type_x_district'
 # pickle no puede guardar lambdas ni funciones locales (joblib.dump del modelo final fallaria).
 
 def _log_estancia(x: np.ndarray | pd.DataFrame) -> np.ndarray:
+    """log1p de las noches minimas recortadas a un ano (rama 'estancia' del preprocesador lineal)."""
     # Rama 'estancia' de preprocesador_lineal, solo para minimum_nights. El recorte a un ano neutraliza los
     # centinelas y el log comprime la cola; los arboles la reciben en bruto
     return np.log1p(np.clip(np.asarray(x, dtype=float), None, RECORTE_ESTANCIA))
 
 
 def _a_float(x: np.ndarray | pd.DataFrame) -> np.ndarray:
+    """Convierte las columnas restantes del preprocesador lineal a un array float homogeneo."""
     # Rama 'resto' de preprocesador_lineal: casi todas sus columnas son bool (amenities y flags) mezcladas con
     # numericas, y se pasan a un array float homogeneo antes del StandardScaler
     return np.asarray(x, dtype=float)
@@ -489,6 +435,7 @@ def anadir_interacciones(X: pd.DataFrame) -> pd.DataFrame:
 
 
 def _acepta_cv_como_divisor() -> bool:
+    """True si esta version de scikit-learn admite un divisor de folds en TargetEncoder(cv=...)."""
     # Las versiones antiguas de scikit-learn (p. ej. la de Colab) solo admiten un entero en TargetEncoder(cv=...)
     try:
         TargetEncoder(cv=KFold(2)).fit(pd.DataFrame({'x': ['a', 'b', 'a', 'b']}), [1.0, 2.0, 1.0, 2.0])
@@ -501,6 +448,7 @@ CV_BARRIO_ADMITE_DIVISOR = _acepta_cv_como_divisor()
 
 
 def _codificador_barrio() -> TargetEncoder:
+    """TargetEncoder del barrio con la configuracion comun a los preprocesadores lineal y de arboles."""
     # Un TargetEncoder nuevo para cada preprocesador que codifica neighbourhood (preprocesador_lineal y
     # preprocesador_arboles con barrio='target'); asi los dos usan la misma configuracion.
     # cross-fitting por filas, no por anfitrion: fuga menor entre anuncios gemelos del train
@@ -602,6 +550,7 @@ class RegresorCatBoost(RegressorMixin, BaseEstimator):
                  random_state: int = SEMILLA, task_type: Literal['CPU', 'GPU'] = 'CPU',
                  early_stopping_rounds: int | None = None, validacion_fraccion: float = 0.1,
                  loss_function: str = 'RMSE'):
+        """Guarda los hiperparametros del CatBoost; no entrena nada hasta fit."""
         self.loss_function = loss_function
         self.iterations = iterations
         self.learning_rate = learning_rate
@@ -615,6 +564,7 @@ class RegresorCatBoost(RegressorMixin, BaseEstimator):
         self.validacion_fraccion = validacion_fraccion
 
     def _preparar(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Pasa las categoricas a texto, como exige CatBoost."""
         # CatBoost exige categoricas de tipo str o int; los NaN pasan a la categoria 'nan'
         X = X.copy()
         for col in self.categoricas_:
@@ -622,6 +572,7 @@ class RegresorCatBoost(RegressorMixin, BaseEstimator):
         return X
 
     def fit(self, X: pd.DataFrame, y: pd.Series | np.ndarray) -> 'RegresorCatBoost':
+        """Detecta las categoricas y entrena un CatBoostRegressor nativo."""
         from catboost import CatBoostRegressor  # dependencia solo de este modelo
         self.categoricas_ = list(X.select_dtypes(include=['category', 'object']).columns)
         self.modelo_ = CatBoostRegressor(
@@ -640,6 +591,7 @@ class RegresorCatBoost(RegressorMixin, BaseEstimator):
         return self
 
     def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """Predice log(price) con el CatBoost entrenado."""
         return self.modelo_.predict(self._preparar(X))
 
 
@@ -654,9 +606,11 @@ class PreparadorMixto(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, columnas: list[str]):
+        """Guarda las columnas con las que se va a trabajar."""
         self.columnas = columnas
 
     def _partes(self, X: pd.DataFrame) -> tuple[list[str], list[str]]:
+        """Separa las columnas en numericas y categoricas (el barrio va aparte)."""
         categoricas = [c for c in self.columnas
                        if c in CATEGORICAS or X[c].dtype == bool or isinstance(X[c].dtype, pd.CategoricalDtype)]
         categoricas = [c for c in categoricas if c != COL_BARRIO]
@@ -664,6 +618,7 @@ class PreparadorMixto(BaseEstimator, TransformerMixin):
         return numericas, categoricas
 
     def _tabla(self, X: pd.DataFrame, barrio: np.ndarray | None) -> pd.DataFrame:
+        """Construye la tabla mixta: numericas (con indicador de nulo), categoricas y barrio codificado."""
         partes = {}
         for col in self.numericas_:
             valores = X[col].astype(float)
@@ -683,10 +638,12 @@ class PreparadorMixto(BaseEstimator, TransformerMixin):
         return pd.DataFrame(partes, index=X.index)
 
     def fit(self, X: pd.DataFrame, y: pd.Series | np.ndarray) -> 'PreparadorMixto':
+        """Ajusta el preparador con X e y."""
         self.fit_transform(X, y)
         return self
 
     def fit_transform(self, X: pd.DataFrame, y: pd.Series | np.ndarray, **_) -> pd.DataFrame:
+        """Ajusta y transforma el train; el barrio se codifica con cross-fitting para no usar su propio precio."""
         self.numericas_, self.categoricas_ = self._partes(X)
         self.medianas_ = {c: float(X[c].median()) for c in self.numericas_ if X[c].isna().any()}
         barrio = None
@@ -697,6 +654,7 @@ class PreparadorMixto(BaseEstimator, TransformerMixin):
         return self._tabla(X, barrio)
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Transforma datos nuevos con lo aprendido en fit."""
         barrio = self.codificador_.transform(X[[COL_BARRIO]]) if COL_BARRIO in self.columnas else None
         return self._tabla(X, barrio)
 
@@ -711,10 +669,12 @@ class FAMDPrince(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, n_components: int = 2, random_state: int = SEMILLA):
+        """Guarda el numero de componentes y la semilla."""
         self.n_components = n_components
         self.random_state = random_state
 
     def fit(self, X: pd.DataFrame, y=None) -> 'FAMDPrince':
+        """Ajusta el FAMD de prince, que admite variables numericas y categoricas."""
         import prince  # dependencia solo de este modelo
         self.famd_ = prince.FAMD(n_components=self.n_components, random_state=self.random_state,
                                  handle_unknown='ignore')
@@ -722,6 +682,7 @@ class FAMDPrince(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> np.ndarray:
+        """Coordenadas de cada fila en las componentes del FAMD."""
         return self.famd_.row_coordinates(X).to_numpy()
 
 
@@ -735,15 +696,18 @@ class PCAmix(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, n_components: int | None = None):
+        """Guarda el numero de componentes (None: todas)."""
         self.n_components = n_components
 
     def _matriz(self, X: pd.DataFrame) -> np.ndarray:
+        """Matriz estandarizada: numericas centradas y reducidas, e indicadores ponderados por la proporcion de cada modalidad."""
         numericas = (X[self.numericas_].to_numpy(dtype=float) - self.medias_) / self.desviaciones_
         indicadores = np.column_stack([(X[col].to_numpy() == modalidad).astype(float)
                                        for col, modalidad in self.modalidades_])
         return np.hstack([numericas, (indicadores - self.proporciones_) / np.sqrt(self.proporciones_)])
 
     def fit(self, X: pd.DataFrame, y=None) -> 'PCAmix':
+        """Aprende medias, desviaciones y proporciones de las modalidades y hace el SVD de la matriz estandarizada."""
         self.numericas_ = list(X.select_dtypes(include='float').columns)
         categoricas = [c for c in X.columns if c not in self.numericas_]
         self.medias_ = X[self.numericas_].mean().to_numpy()
@@ -758,6 +722,7 @@ class PCAmix(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> np.ndarray:
+        """Proyecta filas nuevas sobre las componentes aprendidas."""
         return self._matriz(X) @ self.components_.T
 
 
@@ -862,3 +827,175 @@ def evaluar_intervalo(nombre: str, modelos_por_cuantil: dict[float, BaseEstimato
             fila[f'pinball_{alfa}'] = mean_pinball_loss(y_val, p, alpha=alfa)
         filas.append(fila)
     return pd.DataFrame(filas)
+
+
+# --- Constructores de experimentos --------------------------------------------------------------------------------
+# Cada funcion devuelve un Experimento (nombre, modelo sin ajustar, columnas) listo para evaluar_registrado.
+
+COORDENADAS = ['latitude', 'longitude']
+TASAS = ['host_response_rate', 'host_acceptance_rate', 'host_response_time']
+REDUCTORES_MIXTOS = {'K2 FAMD': ('famd', FAMDPrince), 'K3 PCAmix': ('pcamix', PCAmix)}
+
+
+def sin(columnas: list[str], quitar: list[str]) -> list[str]:
+    """Las columnas sin las indicadas, en el mismo orden."""
+    return [c for c in columnas if c not in set(quitar)]
+
+
+def lineal(nombre: str, columnas: list[str], modelo: BaseEstimator | None = None, splines: bool = False,
+           interacciones: bool = False) -> Experimento:
+    """Modelo lineal (OLS si no se da otro estimador) con el preprocesador lineal, con interacciones y splines opcionales."""
+    modelo = LinearRegression() if modelo is None else modelo
+    return Experimento(nombre, make_pipeline(preprocesador_lineal(columnas, splines, interacciones), modelo),
+                       list(columnas))
+
+
+def referencia_ridge(nombre: str, columnas: list[str]) -> Experimento:
+    """Ridge con alpha = 1, interacciones y splines: el modelo de referencia de la seleccion de variables."""
+    return lineal(f'F4_ridge_{nombre}', columnas, Ridge(alpha=1.0), splines=True, interacciones=True)
+
+
+def lineal_elegido(nombre: str, columnas: list[str], elegido: pd.Series) -> Experimento:
+    """El lineal elegido (Ridge, o ElasticNet si trae l1_ratio) con sus hiperparametros, sobre otras columnas."""
+    if pd.isna(elegido.get('l1_ratio', np.nan)):
+        estimador = Ridge(alpha=elegido['alpha'])
+    else:
+        estimador = ElasticNet(alpha=elegido['alpha'], l1_ratio=elegido['l1_ratio'], max_iter=5000)
+    return lineal(nombre, columnas, estimador, splines=True, interacciones=True)
+
+
+def construir_rf(nombre: str, params: dict, columnas: list[str], n_estimators: int = 150) -> Experimento:
+    """Random Forest con el preprocesador ordinal; params son los hiperparametros a ajustar."""
+    return Experimento(nombre, make_pipeline(preprocesador_ordinal(columnas),
+                                             RandomForestRegressor(n_estimators=n_estimators, n_jobs=-1,
+                                                                   random_state=SEMILLA, **params)), columnas)
+
+
+def construir_hgb(nombre: str, params: dict, columnas: list[str]) -> Experimento:
+    """HistGradientBoosting con el preprocesador de arboles (barrio con TargetEncoder) y sin parada temprana."""
+    return Experimento(nombre, make_pipeline(preprocesador_arboles(columnas),
+                                             HistGradientBoostingRegressor(early_stopping=False,
+                                                                           random_state=SEMILLA, **params)),
+                       columnas)
+
+
+def construir_svr(nombre: str, gamma: float, C: float, columnas: list[str]) -> Experimento:
+    """SVR aproximado: kernel RBF con Nystroem (1.000 componentes) y LinearSVR, tras el preprocesador lineal."""
+    return Experimento(nombre, make_pipeline(preprocesador_lineal(columnas),
+                                             Nystroem(gamma=gamma, n_components=1000, random_state=SEMILLA),
+                                             LinearSVR(C=C, epsilon=0.1, loss='squared_epsilon_insensitive',
+                                                       dual=False, max_iter=5000, random_state=SEMILLA)),
+                       columnas)
+
+
+def construir_catboost(nombre: str, params: dict, columnas: list[str], dispositivo: str = 'CPU',
+                       fijos: dict = FIJOS_CATBOOST) -> Experimento:
+    """CatBoost con las categoricas nativas. `fijos` no se busca; el base pasa fijos={} y usa los valores por defecto."""
+    return Experimento(nombre, RegresorCatBoost(task_type=dispositivo, **{**fijos, **params}), columnas)
+
+
+def knn_mixto(variante: str, k: int, componentes: int, columnas: list[str]) -> Experimento:
+    """kNN con pesos por distancia sobre las componentes de FAMD o PCAmix (variante de REDUCTORES_MIXTOS)."""
+    sufijo, reductor = REDUCTORES_MIXTOS[variante]
+    return Experimento(f"{variante.split()[0]}_knn_{sufijo}{componentes}_k{k}",
+                       make_pipeline(PreparadorMixto(columnas), reductor(componentes),
+                                     KNeighborsRegressor(k, weights='distance')), columnas)
+
+
+def fila_knn(variante: str, k: int, componentes: int, experimento: Experimento, resultados: pd.DataFrame) -> dict:
+    """Fila resumen (RMSE medio y desviacion entre folds) de un kNN para la tabla comparativa."""
+    return {'variante': variante, 'k': k, 'weights': 'distance', 'componentes': componentes,
+            'experimento': experimento.nombre, 'rmse_log_val': resultados['rmse_log_val'].mean(),
+            'rmse_log_val_sd': resultados['rmse_log_val'].std(), 'rmse_log_train': resultados['rmse_log_train'].mean()}
+
+
+def filas_registro(experimento: str, ruta: Path) -> pd.DataFrame:
+    """Las filas de un experimento del registro en la repeticion 0, para comparaciones pareadas."""
+    return pd.read_csv(ruta).query('experimento == @experimento and repeticion == 0')
+
+
+# --- Seleccion de variables (regla D4) ----------------------------------------------------------------------------
+
+def seleccionar_variables(modelo: str, tabla_pruebas: pd.DataFrame, columnas: list[str],
+                          bloques: dict[str, list[str]]) -> tuple[list[str], list[str]]:
+    """Aplica la regla D4 a las pruebas A1-A12 de un modelo y devuelve (variables que se quedan, variables fuera).
+
+    tabla_pruebas: una fila por prueba con 'modelo', 'prueba', 'que_se_prueba', 'entra' y 'delta_medio'.
+    bloques: los bloques de variables (B1_ubicacion y B3_amenities_comunes se usan por su nombre).
+    """
+    def prueba(id_prueba, texto):
+        fila = tabla_pruebas[(tabla_pruebas['modelo'] == modelo) & (tabla_pruebas['prueba'] == id_prueba)
+                             & (tabla_pruebas['que_se_prueba'] == texto)]
+        assert len(fila) == 1, (modelo, id_prueba, texto)
+        return fila.iloc[0]
+
+    def entra(id_prueba, texto):
+        return bool(prueba(id_prueba, texto)['entra'])
+
+    def delta(id_prueba, texto):
+        return prueba(id_prueba, texto)['delta_medio']
+
+    def forma_elegida(id_prueba, opciones, conjunta):
+        """A4 y A7: las dos formas solo si ganan a cada forma suelta; si no, la suelta que entra con mayor Delta."""
+        if all(entra(id_prueba, texto_conjunta) for texto_conjunta in conjunta.values()):
+            return [col for cols in opciones.values() for col in cols]
+        candidatas = {texto: cols for texto, cols in opciones.items() if entra(id_prueba, texto)}
+        if not candidatas:
+            return []
+        mejor = max(candidatas, key=lambda texto: delta(id_prueba, texto))
+        return candidatas[mejor]
+
+    quitar = set()
+    simples = {'A1': ('es_estudio', ['es_estudio']),
+               'A2': ('property_type_grp', ['property_type_grp']),
+               'A6': ('instant_bookable', ['instant_bookable']),
+               'A8': ('reputacion_cartera', ['reputacion_cartera']),
+               'A9': ('tasas de respuesta y aceptación', TASAS),
+               'A12': ('bloque B3 (amenities comunes)', bloques['B3_amenities_comunes'])}
+    for id_prueba, (texto, cols) in simples.items():
+        if not entra(id_prueba, texto):
+            quitar |= set(cols)
+    for col in ['host_identity_verified', 'host_is_superhost', 'host_ambito', 'antiguedad_host_anios']:
+        if not entra('A10', col):
+            quitar.add(col)
+
+    # A3: se sube por la cadena mientras cada escalon entra; las coordenadas, si ganan a district + barrio
+    ubicacion = list(COORDENADAS) if entra('A3', 'coordenadas sobre district + barrio') else []
+    for texto, col in [('+ dist_centro_km sobre lat/lon', 'dist_centro_km'), ('+ district', 'district'),
+                       ('+ barrio', 'neighbourhood')]:
+        if not entra('A3', texto):
+            break
+        ubicacion.append(col)
+    if not ubicacion:
+        ubicacion = ['district', 'neighbourhood']
+    quitar |= set(bloques['B1_ubicacion']) - set(ubicacion)
+
+    estancia = forma_elegida('A4',
+                             {'minimum_nights en bruto (frente a fuera)': ['minimum_nights'],
+                              'estancia_min_30 (frente a fuera)': ['estancia_min_30']},
+                             {'bruto': 'las dos frente a solo en bruto',
+                              'min_30': 'las dos frente a solo estancia_min_30'})
+    quitar |= {'minimum_nights', 'estancia_min_30'} - set(estancia)
+    cartera = forma_elegida('A7',
+                            {'n_anuncios_ny (frente a ninguna)': ['n_anuncios_ny'],
+                             'host_total_listings_count (frente a ninguna)': ['host_total_listings_count']},
+                            {'n': 'las dos frente a solo n_anuncios_ny',
+                             'total': 'las dos frente a solo total_listings'})
+    quitar |= {'n_anuncios_ny', 'host_total_listings_count'} - set(cartera)
+    return [c for c in columnas if c not in quitar], sorted(quitar)
+
+
+# --- Lectura de coeficientes del lineal ---------------------------------------------------------------------------
+
+def variable_original(columna: str, columnas: list[str]) -> str:
+    """Variable de `columnas` de la que sale una columna del preprocesador lineal ('interacciones' si lo es)."""
+    nombre = re.sub(r'^\w+?__', '', columna).removeprefix('missingindicator_')
+    if nombre.startswith(INTERACCION_DISTRITO) or '_x_' in nombre:
+        return 'interacciones'
+    return max((c for c in columnas if nombre == c or nombre.startswith(c + '_')), key=len)
+
+
+def anuladas(coeficientes: pd.Series, columnas: list[str]) -> set[str]:
+    """Variables originales cuyas columnas tienen todas el coeficiente a cero (Lasso o ElasticNet las anulan del todo)."""
+    usada = (coeficientes != 0).groupby(coeficientes.index.map(lambda c: variable_original(c, columnas))).any()
+    return set(usada[~usada].index)

@@ -15,7 +15,6 @@ GRID = '#e1e0d9'
 # --- Roles semanticos (el color significa algo, no es una categoria) ---
 COLOR_FOCO, COLOR_CONTEXTO = '#2a6f97', '#9aa5b1'        # destacar una barra frente al resto
 COLOR_BASE, COLOR_SECUNDARIO = COLOR_FOCO, COLOR_CONTEXTO  # serie principal y su comparador
-COLOR_REFERENCIA = '#c3c2b7'                               # baseline ingenuo, lineas neutras
 COLOR_ENCARECE, COLOR_ABARATA = '#e34948', '#2a78d6'       # efecto sobre el precio: rojo sube, azul baja
 COLOR_MEDIA, COLOR_MEDIANA = '#e34948', INK                # lineas verticales sobre histogramas
 
@@ -30,12 +29,9 @@ COLOR_VARIABLE = {'price': '#2a78d6', 'price_log': '#eb6834', 'accommodates': '#
                   'bedrooms': '#c0488f', 'bathrooms': '#9a8a3c'}
 
 ORDEN_DISTRICT = list(COLOR_DISTRICT)
-ORDEN_ROOM_TYPE = list(COLOR_ROOM_TYPE)
 
 # --- Mapas continuos ---
-CMAP_SECUENCIAL = 'magma_r'     # precio, densidad
 CMAP_ORDINAL = 'Blues'          # categorias ordenadas (capacidad, tramos)
-CMAP_DIVERGENTE = 'coolwarm'    # correlaciones, residuos (centrar siempre en 0)
 
 COLORES = {'district': COLOR_DISTRICT, 'room_type': COLOR_ROOM_TYPE, 'split': COLOR_SPLIT,
            'variable': COLOR_VARIABLE}

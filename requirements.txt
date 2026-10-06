@@ -17,6 +17,9 @@ prince==0.21.0
 # Exportación del dataset de modelado (Parquet)
 pyarrow
 
+# Parametros comunes del experimento (.env)
+python-dotenv
+
 # Ejecución de Jupyter Notebooks en el entorno
 ipykernel
 pycountry

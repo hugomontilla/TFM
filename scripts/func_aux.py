@@ -7,13 +7,14 @@ import pandas as pd
 import scipy.stats as stats
 from IPython.display import display
 
+from config import SEMILLA
 from preparacion_datos import haversine_km
 
 from estilo_graficos import (SURFACE, INK, INK_MUTED, GRID, estilo,
                               grafico_reparto_pie, grafico_barras_apiladas)
 
 
-def diagnostico_normalidad_shapiro(grupos, n_sub=5000, n_repeticiones=20, semilla=42):
+def diagnostico_normalidad_shapiro(grupos, n_sub=5000, n_repeticiones=20, semilla=SEMILLA):
     """Normalidad por grupo combinando Shapiro sobre submuestras con medidas de tamano de efecto."""
     rng = np.random.default_rng(semilla)
     filas = []

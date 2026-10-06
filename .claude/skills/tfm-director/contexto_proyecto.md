@@ -34,8 +34,8 @@ fuente.
 | Qué | Dónde |
 |---|---|
 | Datos brutos | `data/listings.csv`, `data/reviews.csv` |
-| Dataset de modelado | `data/listings_ny_modelado.parquet` + bloques en `data/bloques_modelado.json` |
-| Preparación de datos (única fuente de verdad de las *features*) | `scripts/preparacion_datos.py` (`PreparadorListings`; se ejecuta sin argumentos); parámetros en `data/preparador_ny.json` |
+| Dataset de modelado | `data/modelado/{train,test}.parquet`; los bloques salen de `PreparadorListings.bloques_` |
+| Preparación de datos (única fuente de verdad de las *features*) | `scripts/preparacion_datos.py` (`PreparadorListings`; se ejecuta sin argumentos); parámetros en `data/modelado/preparador.json` |
 | Funciones de modelado | `scripts/func_modelado.py` (`cargar_modelado`, `generar_folds`, `evaluar`, `registrar`, `resumir`); partición en `scripts/particion_datos.py` |
 | Funciones del EDA | `notebooks/func_aux.py` |
 | Notebooks | `notebooks/EDA_NY.ipynb`, `notebooks/Modelado.ipynb` (`EDA.ipynb` = 10 ciudades, solo evidencia) |
@@ -54,7 +54,7 @@ fuente.
 - **Todo lo que aprende de los datos va dentro del `Pipeline`.** Excepciones ya declaradas como limitación:
   imputación de `bedrooms` (H-033) y decisiones del EDA con todo el dataset (H-035).
 - **El preview del 09-23 no es evidencia** (H-030). Nunca se citan sus cifras como justificación.
-- **Toda *feature* nueva se implementa en `preparacion_datos.py`** y se añade a `bloques_modelado.json`, no
+- **Toda *feature* nueva se implementa en `preparacion_datos.py`** y se añade a `PreparadorListings.bloques_`, no
   solo en un notebook.
 - **Todo experimento se registra, salga bien o mal.** Nunca se borra un resultado.
 - **La regla de decisión se fija antes de mirar** (plan §5.3, D4). No se cambia la métrica principal
