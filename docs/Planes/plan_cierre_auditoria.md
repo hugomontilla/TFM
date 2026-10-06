@@ -1,7 +1,7 @@
 # Plan: cerrar los hallazgos de AUD-002 (binarias y coherencia)
 
 **Origen:** `docs/auditorias/AUD-002_binarias_y_coherencia.md`. **Plazo:** aprobación del tutor antes del 2026-10-16;
-entrega el 2026-10-23. Actualizado el 2026-10-06 (Fase 2 y los ficheros de la Fase 1 cerrados). La parte documental (sin reentrenar nada) debe quedar lista el 10-09 y
+entrega el 2026-10-23. Actualizado el 2026-10-06 (Fases 1 y 2 cerradas). La parte documental (sin reentrenar nada) debe quedar lista el 10-09 y
 el experimento opcional, si se hace, el 10-12.
 
 **Regla:** este plan no cambia ningún resultado ya registrado. Solo se alinean documentos, se añaden diagnósticos sobre
@@ -22,7 +22,7 @@ train y, como mucho, un experimento nuevo registrado en `outputs/experimentos.cs
 | 9 Cola de precios | Ver Fase 5 | Alcance declarado | memoria, resumen |
 | 10 «No significativo» frente a «equivalente» | Ver Fase 5 | Reformulación, o TOST | notebook 3 |
 
-## Fase 1 — Decidir el modelo final (bloqueante; ficheros cerrados 2026-10-06, pendientes TOST y alineación de docs)
+## Fase 1 — Decidir el modelo final (bloqueante; cerrada 2026-10-06)
 
 Hechos de partida, que hay que verificar leyendo: `plan_modelo_final.md` (2026-10-02) dice que el elegido por la regla
 fijada de antemano es **CatBoost** (CV 0,4160 frente a 0,4191 de HGB). El resumen ejecutivo y el README presentan **HGB**
@@ -51,10 +51,12 @@ Las opciones A y B quedan como alternativas descartadas:
 2. **Hecho (10-06):** artefactos renombrados con el sufijo del modelo (`sufijo='_catboost'` en `4-MODELO_FINAL`):
    `modelo_final_catboost.joblib`, `cuantiles_catboost.joblib`, `ficha_modelo_catboost.json` y `resultados_test_catboost.csv`,
    más los de HGB con `_hgb` (sensibilidad). Comprobado: el notebook guarda los dos modelos, las dos fichas comparten el
-   MD5 de la partición y tienen 79 variables. Falta reejecutar la celda de guardado para confirmar que carga con los nombres nuevos.
+   MD5 de la partición y tienen 79 variables. Comprobado el 10-06: los cuatro `.joblib` cargan con el entorno `.venv`.
 3. Alinear README §Resultados, resumen §5 y `4-MODELO_FINAL` (título, conclusiones) con la decisión.
 
-**Criterio de cierre:** ninguna frase del repo llama «final» a más de un modelo.
+**TOST (10-06, margen ±0,005 fijado antes):** Δ(CatBoost − HGB) = −0,0029, IC 90% [−0,0042; −0,0016], p = 0,012: equivalentes en la práctica; CatBoost gana en 5/5 folds (t pareado p = 0,009). Folds no independientes: p orientativos. Escrito en bitácora (10-06), README, resumen §5 y notebook 4.
+
+**Criterio de cierre:** cumplido; ninguna frase del repo llama «final» a más de un modelo.
 
 ## Fase 2 — Una sola fuente para las cifras (cerrada 2026-10-06)
 
@@ -79,9 +81,9 @@ unificar los textos. Resultado de la comprobación:
 
 1. **Tabla de binarias por familia** (hallazgo 1), generada de los ficheros: cuántas entran en lineal (71), árboles (79),
    kNN, SVR. Va al resumen y a la memoria.
-2. **Diagnóstico de colinealidad** (hallazgo 2), una celda en `3-MODELADO` solo con train: pares con |r| > 0,5,
+2. **[Hecho 10-06, H-047]** **Diagnóstico de colinealidad** (hallazgo 2), una celda en `3-MODELADO` solo con train: pares con |r| > 0,5,
    componentes para el 80% y los grupos de gemelas (cocina, lavandería, seguridad). Conclusión: se interpretan **bloques,
-   no amenities sueltos**.
+   no amenities sueltos**. Se añadió la reducción de duplicados (|r| > 0,8, 71 → 65) como decisión de diseño para el kNN con FAMD/PCAmix (el lineal la compara y la regla D1 elige las 79); coste ≈ 0,0003 de RMSE (`K6_*`, notebook 3 §7.0b, §7.3b y §7.5).
 3. **Escalado** (hallazgo 4): un párrafo que diga qué se hace (se escalan también las binarias) y su consecuencia (la
    penalización de Ridge pesa distinto según la prevalencia). La sensibilidad ya existente (71 frente a 79, Δ = 0,004) sirve de respaldo.
 4. **Efecto de los amenities** (hallazgo 5): en `4-MODELO_FINAL` y la memoria, presentar el bloque (0,027 en CatBoost) y
@@ -90,7 +92,7 @@ unificar los textos. Resultado de la comprobación:
 
 **Criterio de cierre:** la memoria no contiene ninguna frase que interprete un amenity aislado como causa o como clave.
 
-## Fase 4 — kNN y las binarias (hallazgo 3; opcional, 0,5 día)
+## Fase 4 — kNN y las binarias (hallazgo 3; opcional, 0,5 día; decisión 10-06: se descarta K5 y se reformula como hipótesis)
 
 Decisión del director: ¿merece un experimento? Es barato, pero kNN no es un finalista.
 
@@ -118,7 +120,7 @@ Pasa a **APROBADO** solo si la Fase 1 y la 2 están cerradas.
 
 | Día | Fase |
 |---|---|
-| 10-06 | 1 (ficheros) y 2 ✅; queda de la 1: TOST CatBoost frente a HGB, bitácora, README y resumen §5 |
+| 10-06 | 1 y 2 ✅ |
 | 10-07 / 10-08 | 3 y 5 |
 | 10-09 | 4 (opcional) y 6 |
 | 10-10 a 10-15 | Margen, envío al tutor |

@@ -21,12 +21,12 @@ Error medido con el RMSE sobre `log(price)` (menor es mejor):
 | Modelo | RMSE log (validación cruzada) | RMSE log (test) | MAE en test |
 |---|---|---|---|
 | Mediana por tipo × capacidad (referencia) | 0,535 | — | — |
-| Ridge / ElasticNet | 0,434 | — | — |
+| ElasticNet | 0,434 | — | — |
 | Random Forest | 0,428 | — | — |
-| **HGB** | 0,419 | **0,424** | $49 |
-| **CatBoost** | 0,416 | 0,429 | $50 |
+| HGB (alternativa) | 0,419 | 0,424 | $49 |
+| **CatBoost (modelo de referencia)** | **0,416** | **0,429** | **$50** |
 
-- HGB y CatBoost son los dos finalistas y quedan empatados en la práctica; HGB se ajusta unas 16 veces más rápido.
+- CatBoost es el modelo de referencia y el que se entrega: lo elige la regla fijada de antemano (menor RMSE de CV). HGB es una alternativa equivalente (TOST pareado con margen ±0,005: p = 0,012) y unas 16 veces más rápida. El test no se usa para elegir.
 - El **producto** (tipo y capacidad) explica la mayor parte del precio, seguido de la **ubicación**; conocer al
   anfitrión mejora el resultado.
 - El intervalo del 80% (cuantiles + calibración conformal, CQR) cubre el 79-80%, pero **falla en los precios altos**

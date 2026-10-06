@@ -31,20 +31,24 @@ Las filas con 80 variables (`L2_6` y `L5_*`) incluyen el bloque de amenities de 
 | Ridge: mejor de 11 valores de alpha | 80 | 0,433 ± 0,009 | $50 | 33% | `L5_Ridge_alpha_3.2` |
 | Lasso: mejor de 7 valores de alpha | 80 | 0,433 ± 0,009 | $50 | 33% | `L5_Lasso_alpha_0.00032` |
 | ElasticNet: mejor de 7 valores de alpha | 80 | 0,433 ± 0,009 | $50 | 33% | `L5_ElasticNet_alpha_0.00032` |
-| Ridge ajustado (71 variables): mejor de 10 candidatos | 71 | 0,439 ± 0,012 | $51 | 34% | `T7_ridge_05` |
-| ElasticNet ajustado (71 variables): mejor de 10 candidatos | 71 | 0,439 ± 0,012 | $51 | 34% | `T7_elasticnet_01` |
-| ElasticNet ajustado con las 79 variables | 79 | 0,434 ± 0,009 | $50 | 33% | `T7_elasticnet_01_completo` |
-| Lineal ajustado, escenario A (sin perfil del anfitrión) | 67 | 0,452 ± 0,013 | $52 | 35% | `Lineal_ajustado_escenario_A` |
+| Ridge ajustado (65 variables, sin amenities casi duplicados): mejor de 10 candidatos | 65 | 0,440 ± 0,012 | $51 | 34% | `T7_ridge_05` (versión de 71: `T7_ridge_05__v71`, 0,439) |
+| ElasticNet ajustado (65 variables): mejor de 10 candidatos | 65 | 0,439 ± 0,012 | $51 | 34% | `T7_elasticnet_01` (versión de 71: `T7_elasticnet_01__v71`, 0,439) |
+| **Lineal elegido (regla D1): Lasso con las 79 variables** | 79 | **0,434 ± 0,009** | $50 | 33% | `L5_Lasso_alpha_0.0001` (y `T7_elasticnet_01_completo`) |
+| Lineal elegido, escenario A (sin perfil del anfitrión) | 69 | 0,452 ± 0,013 | $52 | 35% | `Lineal_ajustado_escenario_A` (versión de 67: `__v71`) |
+| Ridge L4 con 65 variables (sin amenities gemelos), 15 folds | 65 | 0,440 ± 0,011 | $51 | 34% | `K6_ridge_sin_gemelas` (referencia de 71: `F4_ridge_seleccionado`, 0,4394) |
+| ElasticNet ajustado con 65 variables | 65 | 0,439 ± 0,012 | $51 | 34% | `K6_elasticnet_sin_gemelas` (referencia `T7_elasticnet_01__v71`, 0,4390) |
+
+Reducción por colinealidad (bitácora 10-06; \|r\| > 0,8; quita `am_dryer`, `am_stove`, `am_oven`, `am_microwave`, `am_dishes_and_silverware`, `am_cooking_basics`; 71 → 65): decisión de diseño aplicada al kNN con FAMD/PCAmix; el lineal se compara con las 65 (`T7_*`) y la regla D1 elige las 79. Las filas de 71 variables quedan como histórico con el sufijo `__v71`. Lista de variables en `data/modelado/reduccion_colinealidad.json`. Las filas `K6_*` son la comprobación a posteriori (71 frente a 65, mismos hiperparámetros).
 
 ## 3. kNN
 
 | Experimento | Variables | RMSE log (media ± sd) | MAE | MAPE | Nombre en el registro |
 |---|---|---|---|---|---|
 | kNN con 5 variables: mejor de 14 configuraciones (k y pesos) | 5 | 0,474 ± 0,012 | $54 | 37% | `K1_knn_subconjunto_k75_distance` |
-| PCA + kNN: mejor de 15 | 71 | 0,497 ± 0,009 | $56 | 38% | `K2_knn_pca20_k50` |
-| FAMD + kNN: mejor de 3 | 71 | 0,482 ± 0,010 | $55 | 36% | `K3_knn_famd51_k20` |
-| PCAmix + kNN: mejor de 3 | 71 | 0,482 ± 0,012 | $55 | 36% | `K3_knn_pcamix51_k20` |
-| PCAmix con 80% de varianza + kNN: mejor de 4 | 71 | 0,479 ± 0,011 | $55 | 36% | `K4_knn_pcamix38_k20` |
+| PCA + kNN: mejor de 15 (71 variables, histórico) | 71 | 0,497 ± 0,009 | $56 | 38% | `K2_knn_pca20_k50__v71` |
+| FAMD + kNN: mejor de 3 (65 variables) | 65 | 0,481 ± 0,011 | $55 | 36% | `K2_knn_famd51_k20` (de 71: `K3_knn_famd51_k20__v71`, 0,482) |
+| PCAmix + kNN: mejor de 3 (65 variables) | 65 | 0,481 ± 0,012 | $55 | 36% | `K3_knn_pcamix51_k20` (de 71: `__v71`, 0,482) |
+| PCAmix con 80% de varianza + kNN: mejor de 4 (71 variables, histórico) | 71 | 0,479 ± 0,011 | $55 | 36% | `K4_knn_pcamix38_k20__v71` |
 
 ## 4. Árbol de decisión (CART)
 
