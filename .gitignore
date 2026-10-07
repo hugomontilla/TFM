@@ -12,3 +12,9 @@ data/reviews.csv
 .DS_Store
 Thumbs.db
 .ipynb_checkpoints/
+
+# Configuración de agentes/IA y documentación interna de trabajo
+.agents/
+.claude/
+docs/Planes/
+docs/auditorias/
