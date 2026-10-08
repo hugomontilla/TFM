@@ -1,93 +1,80 @@
-# Resumen ejecutivo — Predicción del precio de Airbnb en Nueva York
+# Predicción del precio de Airbnb en Nueva York
 
-*TFM Máster en Data Science y Big Data. Documento de seguimiento para la tutora. Actualizado el 6 de octubre de 2026.*
 
-## 1. Qué problema resuelvo
+## 1. RESUMEN
 
-Dado un anuncio **nuevo** en Nueva York (características, ubicación y perfil del anfitrión), predecir el **precio por noche** y dar un **intervalo del 80%**, para recomendar un precio a un anfitrión. El objetivo es `log(price)`; `exp(ŷ)` estima la **mediana** del precio.
+La idea del proyecto se basa en una premisa: si alguien va a publicar un anuncio nuevo en Airbnb en Nueva York, ¿qué precio por noche debería poner? Con lo que se sabe del alojamiento, de su ubicación y del anfitrión (informacion obligatoria en airbnb), el modelo propone un precio y, además, un rango en el que el precio real debería caer aproximadamente.
 
-Datos: `listings.csv` del Airbnb 2008-2021, acotado a Nueva York. **36.922 anuncios** → train 29.538 / test 7.384, con anfitriones distintos a cada lado.
+Los datos salen del conjunto público de Airbnb 2008-2021. En este trabajo nos centramos solo en Nueva York, lo que deja **36.922 anuncios**.
 
-## 2. Cómo evito la fuga de información
+## 2. DECISIONES
 
-- **Partición antes de mirar el precio**, agrupada por anfitrión y estratificada por tipo y distrito. El 38,1% de los anuncios pertenece a carteras de varios y son casi gemelos: sin agrupar, la validación se infla.
-- Todo lo que se aprende de los datos (codificación del barrio, medianas, amenities frecuentes) se ajusta **solo con train**.
-- Sin reseñas ni variables derivadas del precio: un anuncio nuevo no las tiene.
-- **Test abierto una sola vez**, tras comprobar su MD5. Todo lo demás se decide con validación cruzada (5 folds, folds guardados y comparaciones pareadas).
+- He trabajado con el logaritmo del precio en lugar del precio directamente, porque los precios tienen una cola muy larga (hay pocos anuncios carísimos que lo distorsionan todo). Al deshacer el logaritmo, lo que obtengo es una estimación del precio *mediano* de un anuncio parecido.
+- Separé entrenamiento y test **antes** de mirar los precios, y lo hice por anfitrión: ningún anfitrión aparece en los dos lados. Esto es importante porque el 38% de los anuncios pertenecen a anfitriones con varios pisos casi idénticos, si no los separamos, el modelo memoriza la respuesta y los resultados salen inflados.
+- No he usado reseñas ni nada calculado a partir del precio, porque un anuncio nuevo todavía no tiene esa información.
+- Todas las decisiones las tomé con validación cruzada (5 particiones, siempre las mismas). El test solo se usa en el notebook final.
+- Quité del test los precios absurdos (de 9.999 $ o más), pero con un anuncio real nuevo no sabríamos de antemano si es uno de esos casos.
 
-## 3. Qué variables entran y por qué
+## 3. VARIABLES
 
-Parto de **79 variables**: producto (5), ubicación (5), condiciones de reserva (3), perfil del anfitrión (10) y 56 amenities binarias.
+Empecé con **79 variables**, que agrupé en cinco bloques: el propio alojamiento (tipo, capacidad, habitaciones…), la ubicación, las condiciones de reserva, el perfil del anfitrión y 56 servicios o *amenities* (wifi, cocina, lavadora, etc.), estas ultimas las sacamos de la columna amenities original buscando aquellas que aparecieran entre el 3,5%-85%.
 
-1. **Ablación por bloques** con reglas fijadas antes de mirar: el producto y la ubicación son lo que más pesa; las condiciones de reserva casi nada. Para el lineal sobran 8 variables (71); para los árboles, quitar variables **empeora** el error (Δ ≈ 0,005 en 5 de 5 folds), así que usan las 79.
-2. **Colinealidad de los amenities.** Con 46 pares de |r| > 0,5, lavandería y cocina son casi duplicados (washer–dryer 0,96; VIF máximo 12,3). Es un problema para el lineal (coeficientes) y para el kNN (distancia), no para los árboles. Regla escrita antes de calcular: con |r| > 0,8 se conserva una variable por grupo (71 → 65, quitando 6). Efecto: ningún par por encima de 0,8 y VIF máximo de 2,9. Se aplica al kNN con FAMD/PCAmix; para el lineal la regla de selección sigue prefiriendo las 79. El coste de precisión de quitar los duplicados es de unas 0,3 milésimas de RMSE.
-3. Consecuencia para la memoria: **se interpretan bloques de variables, no amenities sueltos**; ningún amenity aislado se lee como causa del precio.
+Para ver qué aportaba cada bloque fui quitándolos de uno en uno. Lo que más pesa, con diferencia, es el tipo de alojamiento y su ubicación, por otro lado las condiciones de reserva apenas cambian nada. 
 
-## 4. Qué modelo (RMSE en log, CV de 5 folds; menor es mejor)
+También me encontré con que muchos amenities van casi siempre juntos (quien tiene lavadora casi siempre tiene secadora, alta correlacion). Para algunos modelos esto es un problema, así que en esos casos dejé solo una variable de cada grupo. 
 
-| Peldaño | Mejor configuración | RMSE | Qué aprendo |
-|---|---|---|---|
-| Referencia ingenua | mediana por tipo × capacidad | 0,535 | Lo que haría un anfitrión con una regla simple |
-| Lineal | Lasso con las 79 (con las 65: 0,439) | 0,434 | El producto y la ubicación explican casi todo; regularizar mejora poco |
-| kNN | 5 variables elegidas (K1) | 0,474 | FAMD/PCAmix con 65 variables empeoran (0,481): es compatible con que amenities y anfitrión dominen la distancia, pero no lo he aislado |
-| Árbol CART | profundidad 10 | 0,472 | Inestable entre folds |
-| SVR (Nystroem) | γ = 0,005, C = 1 | 0,432 | Parecido al lineal |
-| Random Forest | ajustado | 0,428 | |
-| HGB | ajustado | 0,419 | |
-| **CatBoost** | **ajustado** | **0,416** | **Menor RMSE de CV** |
+## 4. MODELOS
 
-Lectura: el salto grande (0,71 → 0,53) lo da el **producto**; la **ubicación** y los modelos de boosting bajan hasta 0,42. Las no linealidades y las interacciones valen un 4% frente al lineal. **Conocer al anfitrión sí vale:** sin su perfil, el RMSE sube un 3,7% (HGB) y un 4,0% (lineal).
+Fuimos de los más simple a los más complejo. La medida que uso para compararlos es el RMSE sobre el logaritmo del precio: cuanto más bajo, mejor. 
 
-## 5. Elección del modelo final
-
-- **Regla fijada antes de ver la tabla:** menor RMSE medio de CV. Gana **CatBoost** (0,4162 frente a 0,4191 de HGB), que es el modelo de referencia y el que se entrega.
-- **HGB como alternativa equivalente y más rápida** (unas 10-20 veces, según se mida). Para no llamar «empate» a algo sin demostrar, se hizo un contraste de equivalencia (TOST pareado, margen de ±0,005 fijado antes de calcular): la diferencia de −0,0029 queda dentro del margen (IC 90% [−0,0042; −0,0016], p = 0,012). Aun así CatBoost gana en los 5 folds, así que la diferencia es pequeña pero consistente.
-
-### Resultados en el test (abierto una vez)
-
-| Métrica | CatBoost (IC 95%) | HGB (IC 95%) |
+| Modelo | Error (RMSE) | Comentario |
 |---|---|---|
-| RMSE en log | **0,429** (0,408-0,451) | 0,424 (0,407-0,442) |
-| R² en log | **0,636** | 0,645 |
-| MAE | **$49,9** | $49,4 |
-| Error mediano | **$21** | $21 |
-| MAPE | **31%** | 31% |
+| Mediana por tipo y capacidad | 0,535 | Lo que haría un anfitrión fijándose en anuncios parecidos |
+| Regresión lineal (Lasso) | 0,434 | Ya captura la mayor parte de lo que se puede explicar |
+| Vecinos más cercanos (kNN) | 0,474 | Funciona mejor con pocas variables, se probo tambien tecnicas de reduccion de dimensionalidad |
+| CART | 0,472 | Bastante inestable según la partición |
+| SVR (Nyosterm) | 0,432 | Muy parecido a la regresión lineal |
+| Random Forest | 0,428 | |
+| Gradient Boosting (HGB) | 0,419 | Gradient boosting por histograma|
+| **CatBoost** | **0,416** | **El mejor en validación cruzada y el mas pesado** |
 
-El test cae dentro de CV ± 2 desviaciones en todas las métricas (sin señal de sobreajuste de la búsqueda). En test gana HGB por 0,005, dentro del IC y en sentido contrario al de CV: **el test no se usa para elegir**.
 
-## 6. Dónde falla y alcance declarado
+Mi conclusion es que la mayor mejora viene de conocer bien el alojamiento, la ubicación y los modelos de boosting afinan algo más, pero los modelos complejos solo mejoran sustancialmente  a la regresión lineal. Un dato interesante es que la información del anfitrión sí ayuda: sin ella el error sube alrededor de un 4%.
 
-El modelo estima la **mediana del precio de anuncios típicos**. Se equivoca en la cola alta, y las cifras buenas y malas van juntas:
+## 5. MODELO FINAL
 
-| | CatBoost |
+Antes de ver los resultados decidí que me quedaría con el modelo de menor error en validación cruzada, y ese fue **CatBoost**. HGB quedó muy cerca y es entre 10 y 20 veces más rápido. Hice una prueba estadística para comprobar que la diferencia entre ambos es realmente pequeña (menor que el margen de 0,005 que fijé de antemano), y lo es, aunque CatBoost gana en las cinco particiones. Por eso presento CatBoost como modelo principal y HGB como alternativa práctica.
+
+Estos son los resultados en el test, es decir, en anuncios que el modelo no había visto nunca:
+
+| | CatBoost | HGB |
+|---|---|---|
+| Error (RMSE en log) | 0,429 | 0,424 |
+| Varianza explicada (R²) | 0,64 | 0,65 |
+| Error medio en dólares | 50 $ | 49 $ |
+| Error típico (mediana) en dólares | 21 $ | 21 $ |
+| Error medio en porcentaje | 31% | 31% |
+
+Los resultados son coherentes con lo visto en validación cruzada, así que no parece que el modelo esté sobreajustado. Dicho de forma sencilla: para un anuncio típico, el modelo se equivoca en unos 20 dólares. El modelo funciona bien con anuncios "normales", pero le cuesta mucho con los caros. Me parece importante dejarlo claro:
+
+| Situación | Resultado |
 |---|---|
-| Cobertura del intervalo del 80%, global (con CQR) | 77,9% |
-| Cobertura en el **quintil más caro** | **55,9%** |
-| Cobertura en Manhattan | 73,7% |
-| MAE: habitación privada / piso entero | $25 / $70 |
-| MAE: 7 o más huéspedes / quintil más caro | $172 / $154 |
-| RMSE en log, todo el test / sin los precios sobre el P99 ($794, 81 anuncios) | 0,429 / 0,395 |
+| El rango propuesto acierta (objetivo: 80%) | 78% en general |
+| … en el 20% de anuncios más caros | solo 56% |
+| … en Manhattan | 74% |
+| Error medio: habitación privada / piso entero | 25 $ / 70 $ |
+| Error medio: 7 o más huéspedes / anuncios más caros | 172 $ / 154 $ |
 
-El P99 es solo un análisis de sensibilidad posterior (no se usa para entrenar ni elegir); la regla de exclusión real quita precios ≥ $9.999 y habitaciones > $1.000 (62 anuncios). Los 20 peores errores son pisos enteros caros infravalorados: el modelo no captura el lujo extremo con las variables disponibles.
+Los 20 peores errores son pisos enteros de lujo a los que el modelo pone un precio demasiado bajo. Mi interpretación es que, con la información disponible en el anuncio, no hay forma de distinguir bien un piso de lujo de uno simplemente grande. Si quito el 1% de precios más altos, el error baja de 0,429 a 0,395, lo que confirma que gran parte del error se concentra ahí.
 
-**Qué determina el precio** (importancia por permutación, aumento del RMSE): producto 0,30 ≫ ubicación 0,11 > anfitrión ≈ amenities 0,05 ≫ condiciones de reserva 0,004. Describe cómo usa las variables el modelo, no una relación causal.
+## 6. ORDEN VARIABLES
 
-## 7. Limitaciones
+Midiendo cuánto empeora el modelo al "desordenar" cada bloque de variables, el orden es claro: el tipo de alojamiento es lo más importante con diferencia, después la ubicación, luego el anfitrión y los amenities (con un peso similar) y, por último, las condiciones de reserva, que prácticamente no influyen. Esto describe cómo usa el modelo la información, no quiere decir que una cosa *cause* la otra.
 
-1. El perfil del anfitrión se mide en 2021, no en el momento de publicar.
-2. Los precios de bloqueo se excluyen también del test; en producción el precio no se conoce.
-3. La CQR con un solo conjunto de calibración es aproximada (anuncios correlacionados por anfitrión).
-4. Las comparaciones entre modelos usan folds que comparten train: los p-valores son orientativos. «No se detecta diferencia» no significa «equivalente»; solo CatBoost frente a HGB está demostrado con TOST.
-5. Los amenities son colineales: no se interpretan de uno en uno.
-6. Decisiones tomadas viendo resultados parciales, declaradas: recorte de la búsqueda de CatBoost de 40 a 10 candidatos, y umbral de colinealidad de 0,9 a 0,8 (antes de calcular ningún RMSE).
+## 7. DUDAS
 
-## 8. Dónde me gustaría su orientación
+1. ¿Te parece defendible presentar CatBoost como modelo principal y HGB como alternativa equivalente?
+2. Los anuncios caros son el punto débil. ¿Valdría la pena un modelo específico para ellos, o es suficiente con explicarlo como limitación? Como hemos estudiado en general valores tan altos como 9999$ son precios de bloqueo.
+3. Para interpretar el modelo uso importancia por permutación, gráficos PDP/ICE y SHAP. ¿Crees que es suficiente?
+4. ¿Cómo debería organizar la memoria, y cuánto espacio dedicar al análisis exploratorio y a la selección de variables?
 
-1. **¿Es defendible presentar CatBoost como modelo de referencia y HGB como alternativa equivalente?**
-2. **La cola de precios altos** es el punto débil (cobertura 56% en el quintil caro). ¿Merece un modelo específico o basta con declararla como limitación?
-3. **Interpretabilidad:** hoy uso permutación, PDP/ICE y SHAP en CatBoost. ¿Es suficiente?
-4. **Estructura de la memoria**, y cuánto detalle dar a la selección de variables y al EDA.
-
-## 9. Siguiente paso
-
-Cerrar la redacción defensiva (alcance de la cola de precios y pruebas de equivalencia), redactar la memoria y preparar la presentación. Aprobación antes del **16 de octubre de 2026**; entrega el 23 de octubre.
