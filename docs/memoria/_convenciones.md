@@ -55,7 +55,9 @@ avisa al alumno.
 
 - Español, frases cortas, tono cordial y no mecánico. Impersonal por defecto ("se decidió", "el modelo realiza");
   primera persona solo para explicar una decisión de diseño o un hallazgo propio.
-- Cada sección termina con `#### Conclusiones:` y viñetas con el concepto clave en negrita (skill TFM base).
+- Sin bloque `#### Conclusiones:` al final de cada sección (decisión del alumno, 2026-10-09): las ideas clave ya se
+  dicen a lo largo de cada apartado y el bloque las repetía.
+- El PDF sigue el estilo de [_estilo_pdf.md](_estilo_pdf.md); se genera con `python scripts/generar_pdf_memoria.py`.
 - Asociación ≠ causalidad: importancia, SHAP o coeficientes describen cómo predice el modelo, no qué causa el precio.
 - Las limitaciones se dicen, no se esconden: los precios altos son el punto débil y aparece en las dos partes.
 - Storytelling según [.agents/skills/storytelling/SKILL.md](../../.agents/skills/storytelling/SKILL.md):

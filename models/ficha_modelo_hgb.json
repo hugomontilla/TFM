@@ -139,6 +139,6 @@
     "pandas": "3.0.5",
     "numpy": "2.5.1"
   },
-  "fecha": "2026-10-05",
+  "fecha": "2026-10-12",
   "nota": "exp(prediccion) estima la MEDIANA del precio, no la media."
 }

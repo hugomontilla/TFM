@@ -1,0 +1,111 @@
+/* Estilo de la memoria del TFM, tomado de docs/Enunciado_TFM/Plantilla portada TFM.docx.
+   Ficha completa en docs/memoria/_estilo_pdf.md. */
+
+:root {
+  --granate: #7d283b;      /* "Trabajo de Fin de Máster" en la portada */
+  --granate-logo: #84113c; /* granate del escudo */
+  --dorado: #fdb628;       /* dorado del escudo */
+  --texto: #222222;        /* título y subtítulo de la portada */
+  --gris: #5f5f5f;
+  --linea: #e2cfd3;
+  --fondo-suave: #f8f1f3;
+}
+
+@page {
+  size: letter;
+  margin: 1in 1in 0.9in 1in;
+  @top-left { content: "Máster en Data Science y Big Data · Universidad de Sevilla"; font: 8pt Arial, sans-serif; color: var(--gris); }
+  @bottom-center { content: counter(page); font: 9pt Arial, sans-serif; color: var(--granate); }
+}
+@page portada { margin: 0; @top-left { content: none; } @bottom-center { content: none; } }
+@page indice { @top-left { content: none; } @top-right { content: none; } }
+@page analistas { @top-right { content: "Documentación para analistas"; font: 8pt Arial, sans-serif; color: var(--granate); } }
+@page sponsor { @top-right { content: "Documentación para el sponsor"; font: 8pt Arial, sans-serif; color: var(--granate); } }
+@page apendices { @top-right { content: "Apéndices"; font: 8pt Arial, sans-serif; color: var(--granate); } }
+
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11pt;
+  line-height: 1.15;
+  color: var(--texto);
+  margin: 0;
+}
+
+/* ---------- Portada (posiciones medidas sobre la plantilla, en pt) ---------- */
+.portada { page: portada; position: relative; width: 612pt; height: 792pt; overflow: hidden; break-after: page; }
+.portada .marca-agua { position: absolute; left: 72pt; top: 192pt; width: 468pt; }
+.portada .master { position: absolute; top: 96pt; width: 100%; text-align: center; font-size: 24pt; }
+.portada .us-texto { position: absolute; left: 194pt; top: 131pt; width: 224pt; }
+.portada .bloque-titulo { position: absolute; top: 316pt; left: 72pt; width: 468pt; }
+.portada p { text-align: center; hyphens: none; }
+.portada .tfm { font-size: 30pt; color: var(--granate); margin: 0 0 14pt; }
+.portada .titulo { font-size: 32pt; line-height: 1.15; margin: 0 0 12pt; }
+.portada .subtitulo { font-size: 20pt; line-height: 1.2; margin: 0; }
+.portada .autor { position: absolute; right: 72pt; top: 674pt; font-size: 18pt; text-align: right; }
+.portada .fecha { position: absolute; right: 72pt; top: 700pt; font-size: 14pt; text-align: right; }
+.portada .logo-us { position: absolute; left: 18pt; top: 680pt; width: 106pt; }
+.portada .logo-cfp { position: absolute; left: 130pt; top: 727pt; width: 204pt; }
+
+/* ---------- Índice ---------- */
+.indice { page: indice; break-after: page; }
+.indice h1 { border: 0; }
+.indice ol { list-style: none; padding: 0; margin: 0; }
+.indice li { display: flex; align-items: baseline; margin: 0 0 3pt; }
+.indice li.n1 { font-size: 12pt; color: var(--granate); margin-top: 12pt; }
+.indice li.n2 { padding-left: 16pt; font-size: 10.5pt; }
+.indice a { color: inherit; text-decoration: none; }
+.indice .relleno { flex: 1; border-bottom: 1px dotted #b9a3a8; margin: 0 6pt; transform: translateY(-3pt); }
+.indice .pag { min-width: 18pt; text-align: right; }
+
+/* ---------- Partes ---------- */
+.parte { break-before: page; }
+.parte.analistas { page: analistas; }
+.parte.sponsor { page: sponsor; }
+.parte.apendices { page: apendices; }
+
+h1, h2, h3, h4 { break-after: avoid; font-weight: normal; }
+h1 {
+  font-size: 26pt; color: var(--granate); margin: 0 0 6pt; padding-bottom: 8pt;
+  border-bottom: 3pt solid var(--dorado);
+}
+h2 { font-size: 16pt; color: var(--granate); margin: 22pt 0 6pt; padding-bottom: 3pt; border-bottom: 0.75pt solid var(--linea); }
+h3 { font-size: 12.5pt; font-weight: bold; margin: 14pt 0 4pt; }
+h4 { font-size: 11pt; font-weight: bold; margin: 10pt 0 4pt; }
+h1 + p > strong:only-child { font-size: 13pt; font-weight: normal; color: var(--gris); }
+
+p { margin: 0 0 7pt; text-align: justify; hyphens: auto; }
+ul, ol { margin: 0 0 7pt; padding-left: 18pt; }
+li { margin-bottom: 3pt; }
+li::marker { color: var(--granate); }
+strong { color: #000; }
+a { color: var(--granate); }
+hr { display: none; }
+
+blockquote {
+  margin: 6pt 0 10pt; padding: 6pt 10pt; border-left: 3pt solid var(--dorado);
+  background: #fffaf0; color: #444; font-size: 10pt;
+}
+blockquote p { margin: 0 0 3pt; }
+
+code { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; font-size: 9.5pt; color: var(--granate-logo); }
+pre {
+  font-family: Consolas, "Cascadia Mono", "Courier New", monospace; font-size: 7.5pt; line-height: 1.25;
+  background: #f6f6f6; border-left: 3pt solid var(--granate); padding: 6pt 8pt; margin: 0 0 9pt;
+  white-space: pre-wrap; break-inside: avoid;
+}
+pre code { color: var(--texto); font-size: inherit; }
+
+table { border-collapse: collapse; width: 100%; margin: 4pt 0 10pt; font-size: 9pt; line-height: 1.2; break-inside: auto; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th { background: var(--granate); color: #fff; font-weight: bold; text-align: left; padding: 4pt 5pt; }
+td { padding: 3pt 5pt; border-bottom: 0.5pt solid var(--linea); vertical-align: top; }
+tbody tr:nth-child(even) td { background: var(--fondo-suave); }
+table code { font-size: 8.5pt; }
+
+figure { margin: 8pt 0 12pt; text-align: center; break-inside: avoid; }
+figure img { max-width: 100%; max-height: 4.6in; }
+figure figcaption { font-size: 9pt; color: var(--gris); font-style: italic; margin-top: 4pt; text-align: center; }
+p.tabla-titulo { font-size: 9pt; color: var(--gris); font-style: italic; margin: 10pt 0 2pt; text-align: left; break-after: avoid; }
+p > img { max-width: 100%; }

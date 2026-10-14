@@ -28,7 +28,7 @@ Generado por `scripts/extraer_figuras.py`. No editar a mano: se sobrescribe.
 | [nb2_c066_1.png](nb2_c066_1.png) | 2-ANALISIS.ipynb | 66 | 7. MICROLOCALIZACIÓN: cómo cambia el precio dentro de la ciudad | Mapa de precio mediano (Nueva York) |
 | [nb3_c015.png](nb3_c015.png) | 3-MODELADO.ipynb | 15 | 5. MODELO LINEAL (NIVEL 1) | Escalera del modelo lineal: cada paso añade un bloque o una transformación |
 | [nb3_c018.png](nb3_c018.png) | 3-MODELADO.ipynb | 18 | 5.1 L5: regularización (Ridge, Lasso, ElasticNet) | L5: la regularización frente a la OLS con las mismas columnas |
-| [nb3_c026.png](nb3_c026.png) | 3-MODELADO.ipynb | 26 | 5.2 Inferencia: coeficientes hedónicos con errores agrupados por anfitrión | Amenities: efecto condicionado al producto, la zona y el anfitrión\n(azul: p < 0,05; gris: no significativa) |
+| [nb3_c026.png](nb3_c026.png) | 3-MODELADO.ipynb | 26 | 5.2 Inferencia: coeficientes hedónicos con errores agrupados por anfitrión | Amenities: efecto condicionado al producto, la zona y el anfitrión\n(granate: p < 0,05; gris: no significativa) |
 | [nb3_c029.png](nb3_c029.png) | 3-MODELADO.ipynb | 29 | 5.3 Diagnósticos de la OLS | Residuos frente a ajustados / QQ-plot de los residuos / Residuo medio en el mapa (celdas con 5+ anuncios) |
 | [nb3_c033.png](nb3_c033.png) | 3-MODELADO.ipynb | 33 | 7.0 ¿Hay candidatas que midan lo mismo? | Correlacion de Spearman entre las candidatas numericas (train) |
 | [nb3_c058.png](nb3_c058.png) | 3-MODELADO.ipynb | 58 | 8.1 kNN | K1: subconjunto del plan |
@@ -36,7 +36,7 @@ Generado por `scripts/extraer_figuras.py`. No editar a mano: se sobrescribe.
 | [nb3_c066.png](nb3_c066.png) | 3-MODELADO.ipynb | 66 | Poda por coste-complejidad con la regla de un error estándar | Poda por coste-complejidad: error de validación frente a α |
 | [nb3_c067.png](nb3_c067.png) | 3-MODELADO.ipynb | 67 | Poda por coste-complejidad con la regla de un error estándar | Árbol de profundidad 3 (todo el train): el valor de cada hoja es la media de log(price) |
 | [nb3_c077.png](nb3_c077.png) | 3-MODELADO.ipynb | 77 | 9.3 Ajuste de hiperparámetros de RF y HGB | HGB: RMSE de los {len(busqueda_hgb)} candidatos frente a cada hiperparámetro |
-| [nb3_c094.png](nb3_c094.png) | 3-MODELADO.ipynb | 94 | 11. TABLA COMPARATIVA Y ELECCIÓN DEL MODELO FINAL | Comparación de modelos (en azul, los tres de menor RMSE de validación) |
+| [nb3_c094.png](nb3_c094.png) | 3-MODELADO.ipynb | 94 | 11. TABLA COMPARATIVA Y ELECCIÓN DEL MODELO FINAL | Comparación de modelos (en granate, los tres de menor RMSE de validación) |
 | [nb3_c100.png](nb3_c100.png) | 3-MODELADO.ipynb | 100 | 12. IMPORTANCIA DE VARIABLES | Importancia por permutación de cada bloque (validación, 2 folds × 5 repeticiones)\n |
 | [nb3_c101.png](nb3_c101.png) | 3-MODELADO.ipynb | 101 | 12. IMPORTANCIA DE VARIABLES | {etiqueta}: las 20 más importantes |
 | [nb4_c038.png](nb4_c038.png) | 4-MODELO_FINAL.ipynb | 38 | 6.1 CatBoost |  |

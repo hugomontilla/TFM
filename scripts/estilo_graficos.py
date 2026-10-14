@@ -3,17 +3,21 @@
 Regla de uso: ningun notebook define colores propios. Si una categoria aparece en un grafico,
 su color sale de aqui; asi 'Manhattan' o 'Entire place' se reconocen en toda la memoria.
 Los tamanos priorizan la legibilidad (fuentes de 11-15 pt, trazos de 3 pt) sobre el ahorro de espacio.
+Los graficos de un solo color (o color mas gris de contexto) usan el granate de la portada del master
+(docs/memoria/_estilo_pdf.md); los multicolor conservan su paleta para que las categorias se distingan.
 """
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 import pandas as pd
 
 # --- Tokens de superficie y texto ---
-SURFACE, INK, INK_MUTED = '#fcfcfb', '#0b0b0b', '#6b6963'
+SURFACE, INK, INK_MUTED = '#ffffff', '#222222', '#5f5f5f'
 GRID = '#e1e0d9'
 
 # --- Roles semanticos (el color significa algo, no es una categoria) ---
-COLOR_FOCO, COLOR_CONTEXTO = '#2a6f97', '#9aa5b1'        # destacar una barra frente al resto
+GRANATE = '#7d283b'                                        # granate de la portada
+COLOR_FOCO, COLOR_CONTEXTO = GRANATE, '#c4b6b9'          # destacar una barra frente al resto
 COLOR_BASE, COLOR_SECUNDARIO = COLOR_FOCO, COLOR_CONTEXTO  # serie principal y su comparador
 COLOR_ENCARECE, COLOR_ABARATA = '#e34948', '#2a78d6'       # efecto sobre el precio: rojo sube, azul baja
 COLOR_MEDIA, COLOR_MEDIANA = '#e34948', INK                # lineas verticales sobre histogramas
@@ -25,13 +29,15 @@ COLOR_ROOM_TYPE = {'Entire place': '#0e7c86', 'Private room': '#c0488f',
                    'Hotel room': '#8f63d2', 'Shared room': '#9a8a3c'}
 COLOR_SPLIT = {'train': '#2a6f97', 'val': '#7fb2d3', 'test': '#eb6834'}
 # Una variable, un color: cuando dos paneles muestran variables distintas, cada una conserva el suyo
-COLOR_VARIABLE = {'price': '#2a78d6', 'price_log': '#eb6834', 'accommodates': '#2a6f97',
+COLOR_VARIABLE = {'price': '#2a78d6', 'price_log': '#eb6834', 'accommodates': GRANATE,
                   'bedrooms': '#c0488f', 'bathrooms': '#9a8a3c'}
 
 ORDEN_DISTRICT = list(COLOR_DISTRICT)
 
 # --- Mapas continuos ---
-CMAP_ORDINAL = 'Blues'          # categorias ordenadas (capacidad, tramos)
+CMAP_SECUENCIAL = LinearSegmentedColormap.from_list('granate', ['#f7eef0', '#d4a5b0', GRANATE, '#3d0f1b'])
+CMAP_DIVERGENTE = 'RdBu_r'
+CMAP_ORDINAL = CMAP_SECUENCIAL  # categorias ordenadas (capacidad, tramos)
 
 COLORES = {'district': COLOR_DISTRICT, 'room_type': COLOR_ROOM_TYPE, 'split': COLOR_SPLIT,
            'variable': COLOR_VARIABLE}

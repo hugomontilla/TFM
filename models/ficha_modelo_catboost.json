@@ -130,6 +130,6 @@
     "scikit-learn": "1.9.0",
     "pandas": "3.0.5"
   },
-  "fecha": "2026-10-05",
+  "fecha": "2026-10-12",
   "nota": "exp(prediccion) estima la MEDIANA del precio, no la media."
 }

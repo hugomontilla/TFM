@@ -1,11 +1,13 @@
 # Apéndices
 
-> Primera versión (v1, 2026-10-08). Dirigidos a los ingenieros y analistas que quieran reproducir, revisar o
+> Dirigidos a los ingenieros y analistas que quieran reproducir, revisar o
 > desplegar el trabajo. El repositorio completo acompaña a esta memoria.
 
 ---
 
 ## A. Mapa del repositorio
+
+Repositorio del proyecto: [https://github.com/hugomontilla/TFM](https://github.com/hugomontilla/TFM)
 
 ```
 data/        listings.csv y reviews.csv (no versionados); particion/ (train y test fijos con MD5);

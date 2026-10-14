@@ -2,18 +2,15 @@
 
 **Un precio de partida para cada anuncio nuevo de Airbnb en Nueva York**
 
-> Primera versión (v1, 2026-10-08). Las figuras marcadas como *propuesta* están pendientes de rediseño; el resto del
-> texto es definitivo salvo revisión.
-
 ---
 
 ## Resumen ejecutivo
 
 - **Qué se ha construido:** una herramienta que, a partir de lo que un anfitrión sabe al publicar (cómo es el
   alojamiento, dónde está y quién lo ofrece), propone un **precio por noche** y un **rango razonable** alrededor.
-- **Cuánto acierta:** en un anuncio típico, el precio sugerido se desvía **unos 21 $** del precio real. Frente a
-  fijarse en anuncios del mismo tipo y tamaño, que es lo que haría un anfitrión hoy, el error típico baja de 29 $ a
-  21 $.
+- **Cuánto acierta:** en un anuncio típico, el precio sugerido se desvía **unos 21$** del precio real. Frente a
+  fijarse en anuncios del mismo tipo y tamaño, que es lo que haría un anfitrión hoy, el error típico baja de 29$ a
+  21$.
 - **El rango es fiable:** el precio real cae dentro del rango propuesto en **casi 8 de cada 10 anuncios**, como se
   buscaba.
 - **Qué mueve el precio:** sobre todo el tipo de alojamiento y su tamaño; después, la ubicación exacta. El perfil del
@@ -48,25 +45,17 @@ habitación privada cuesta casi lo mismo que un piso entero, y en Sídney menos 
 sola herramienta habría dado peores resultados en todos. Se decidió centrar el trabajo en **Nueva York**, que tiene el
 precio en dólares, la información de ubicación más detallada del conjunto y casi 37.000 anuncios.
 
-#### Conclusiones:
-- **El objetivo es práctico:** dar a cada anfitrión nuevo un precio de partida y un rango, no fijarle el precio.
-- **Nueva York como mercado de referencia:** el único con datos suficientes y comparables para hacerlo bien.
-
 ---
 
 ## 2. Principales logros obtenidos
 
-- **Un precio sugerido con un error típico de unos 21 $ por noche**, comprobado en anuncios y anfitriones que la
+- **Un precio sugerido con un error típico de unos 21$ por noche**, comprobado en anuncios y anfitriones que la
   herramienta no había visto nunca.
 - **Un 22% más preciso que la regla de "anuncios parecidos"** del mismo tipo y tamaño.
 - **Un rango que cumple lo prometido** en el conjunto del mercado: el precio real cae dentro en casi 8 de cada 10
   anuncios.
 - **Un mapa claro de qué mueve el precio**, útil por sí mismo para orientar a los anfitriones.
 - **Un diagnóstico honesto de sus límites:** se sabe dónde acierta y dónde no, lo que permite usarla con criterio.
-
-#### Conclusiones:
-- **La herramienta mejora la práctica actual** y lo hace de forma medible.
-- **Sus límites están identificados**, lo que reduce el riesgo de adoptarla.
 
 ---
 
@@ -90,12 +79,8 @@ Para que la medida de acierto sea creíble, **una parte de los anuncios se apart
 final**. Además, todos los anuncios de un mismo anfitrión se mantuvieron juntos: muchos gestionan varios pisos casi
 idénticos, y si uno se usara para aprender y su gemelo para comprobar, el acierto saldría inflado.
 
-También se excluyeron los precios que no son tarifas reales, como los anuncios a 9.999 $ que los anfitriones usan para
+También se excluyeron los precios que no son tarifas reales, como los anuncios a 9.999$ que los anfitriones usan para
 bloquear fechas. Se tuvo cuidado de no eliminar el lujo verdadero, que la herramienta debe saber valorar.
-
-#### Conclusiones:
-- **Solo información disponible al publicar:** la herramienta sirve para anuncios nuevos.
-- **Una comprobación exigente:** anuncios y anfitriones nunca vistos, apartados desde el primer día.
 
 ---
 
@@ -105,7 +90,7 @@ bloquear fechas. Se tuvo cuidado de no eliminar el lujo verdadero, que la herram
 |---|---|
 | **Qué hace** | Propone el precio por noche de un anuncio nuevo y un rango en el que el precio real debería caer en 8 de cada 10 casos |
 | **Cómo funciona** | Combina cientos de reglas sencillas ("si es un piso entero en Manhattan para cuatro personas…"), cada una corrigiendo los errores de las anteriores. Es un tipo de modelo muy utilizado con datos de este tipo |
-| **Con qué información** | 79 características del alojamiento, la ubicación, la reserva, el anfitrión y el equipamiento |
+| **Con qué información** | La obligatoria al subir un anuncio a airbnb |
 | **Sobre qué anuncios** | Casi 37.000 anuncios de Nueva York, con datos de febrero de 2021 |
 | **Cómo se comprobó** | Con 7.384 anuncios de anfitriones que la herramienta no había visto nunca |
 | **Frente a qué mejora** | Un 22% más precisa que fijar el precio con la mediana de anuncios del mismo tipo y tamaño |
@@ -114,10 +99,6 @@ Se probaron ocho familias de modelos, desde reglas muy simples hasta modelos com
 resultados prácticamente idénticos; se entrega el que ganó con el criterio fijado antes de empezar, y el segundo
 queda como alternativa más ligera si el coste de cálculo fuera importante.
 
-#### Conclusiones:
-- **Un modelo probado frente a alternativas** más simples y más complejas.
-- **Hay una alternativa equivalente y más ligera**, lo que da flexibilidad para ponerlo en marcha.
-
 ---
 
 ## 5. Resultados principales soportados por datos
@@ -125,12 +106,12 @@ queda como alternativa más ligera si el coste de cálculo fuera importante.
 ### Qué mueve el precio en Nueva York
 
 **Lo primero es el tipo de alojamiento y su tamaño.** Un piso entero cuesta más del doble que una habitación privada
-(140 $ frente a 60 $ por noche en el anuncio típico), y cada huésped o dormitorio adicional sube el precio, aunque
+(140$ frente a 60$ por noche en el anuncio típico), y cada huésped o dormitorio adicional sube el precio, aunque
 cada plaza extra sale más barata que la anterior.
 
 **Lo segundo es la ubicación, y no solo el distrito.** El precio se concentra en el sur y el centro de Manhattan y cae
-hacia la periferia, también dentro de cada distrito (Figura 1). Un anuncio típico cuesta 120 $ en Manhattan, 89 $ en
-Brooklyn y en torno a 70 $ en Queens y el Bronx.
+hacia la periferia, también dentro de cada distrito (Figura 1). Un anuncio típico cuesta 120$ en Manhattan, 89$ en
+Brooklyn y en torno a 70$ en Queens y el Bronx.
 
 ![Mapa del precio por noche en Nueva York: más caro en el sur y centro de Manhattan](figuras/notebooks/nb2_c066_0.png)
 
@@ -142,40 +123,41 @@ alrededor de un 4%. En equipamiento, lo que más se asocia a precios altos son s
 viviendas de gama alta, como gimnasio o chimenea. **Las condiciones de reserva**, como la estancia mínima, apenas
 influyen.
 
-> **[Figura propuesta S2]** Barras horizontales con el peso de cada tipo de información en la propuesta de precio
-> (alojamiento, ubicación, anfitrión, equipamiento, condiciones), con el alojamiento destacado en color y el resto en
-> gris. Título: *"El tipo y el tamaño del alojamiento pesan más que todo lo demás junto"*. Origen: importancia por
-> bloques del modelo final.
+La Figura 2 resume el peso de cada tipo de información: si se le oculta a la herramienta el tipo y el tamaño del
+alojamiento, su error sube un 73%; la ubicación, un 25%; el anfitrión y el equipamiento, entre un 10% y un 13%; las
+condiciones de reserva, un 2%.
+
+![Cuánto aumenta el error si la herramienta no conoce cada tipo de información](figuras/sponsor/S2_peso_informacion.png)
+
+*Figura 2. El tipo y el tamaño del alojamiento pesan más que todo lo demás junto.*
 
 Estas relaciones describen **cómo razona la herramienta**, no causas: que los pisos con gimnasio sean más caros no
 significa que instalar un gimnasio suba el precio.
 
 ### Cuánto acierta
 
-En un anuncio típico, el precio sugerido se desvía **unos 21 $** del real. El error medio es mayor, unos 50 $, porque
-unos pocos anuncios muy caros acumulan errores grandes.
+En un anuncio típico, el precio sugerido se desvía **unos 21$** del real. El error medio es mayor, unos 50$, porque
+unos pocos anuncios muy caros acumulan errores grandes (Figura 3).
 
-> **[Figura propuesta S3]** Comparación sencilla del error típico en dólares: "mediana de anuncios parecidos"
-> (29 $) frente a "herramienta" (21 $). Título: *"La herramienta reduce el error típico de 29 $ a 21 $ por noche"*.
+![Error típico de la regla de anuncios parecidos frente a la herramienta](figuras/sponsor/S3_error_tipico.png)
+
+*Figura 3. Frente a fijarse en anuncios del mismo tipo y tamaño, la herramienta reduce el error típico de 29$ a 21,5$
+por noche (validación sobre los datos de entrenamiento).*
 
 ### Dónde es fiable y dónde no
 
 **En la mayor parte del mercado, la herramienta es fiable.** En las habitaciones privadas el error medio es de unos
-25 $, y en los anuncios de precio intermedio el rango acierta en más de 8 de cada 10 casos.
+25$, y en los anuncios de precio intermedio el rango acierta en más de 8 de cada 10 casos.
 
 **En el lujo, no.** En el 20% de anuncios más caros, el rango acierta solo en algo más de la mitad de los casos, y los
 mayores errores son siempre pisos de lujo a los que la herramienta pone un precio demasiado bajo. El caso más extremo
-es un piso de 6.500 $ por noche al que propone 460 $: para la herramienta es un piso para siete personas como
-cualquier otro, porque nada en el anuncio indica que sea excepcional.
+es un piso de 6.500$ por noche al que propone 460$: para la herramienta es un piso para siete personas como
+cualquier otro, porque nada en el anuncio indica que sea excepcional (Figura 4).
 
-> **[Figura propuesta S4]** Porcentaje de anuncios cuyo precio real cae dentro del rango, por quinto de precio (del más
-> barato al más caro), con el quinto más caro destacado. Título: *"El rango acierta en la mayoría de anuncios, pero no
-> en los de lujo"*.
+![Porcentaje de anuncios cuyo precio real cae dentro del rango, por quinto de precio](figuras/sponsor/S4_cobertura_quintil.png)
 
-#### Conclusiones:
-- **El precio lo deciden sobre todo el tipo, el tamaño y la ubicación** del alojamiento.
-- **La herramienta acierta bien en el mercado general:** unos 21 $ de desviación en el anuncio típico.
-- **El lujo es su punto débil**, porque los anuncios no contienen la información que lo distingue.
+*Figura 4. El rango acierta en la mayoría de anuncios, pero no en los de lujo: en el 20% más caro, solo en el 56% de
+los casos.*
 
 ---
 
@@ -210,8 +192,3 @@ le da un punto de partida mejor que comparar a ojo.
 
 **Siguiente paso con más impacto.** Recoger información que distinga la calidad del alojamiento (superficie, fotos,
 descripción) mejoraría la herramienta precisamente donde hoy falla.
-
-#### Conclusiones:
-- **Adoptar como sugerencia de precio al publicar**, con el rango a la vista.
-- **Revisión humana en el segmento de lujo** y actualización periódica con datos nuevos.
-- **La mayor mejora futura vendrá de mejores datos** sobre la calidad del alojamiento.
