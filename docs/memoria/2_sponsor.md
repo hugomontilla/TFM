@@ -95,7 +95,7 @@ bloquear fechas. Se tuvo cuidado de no eliminar el lujo verdadero, que la herram
 | **Cómo se comprobó** | Con 7.384 anuncios de anfitriones que la herramienta no había visto nunca |
 | **Frente a qué mejora** | Un 22% más precisa que fijar el precio con la mediana de anuncios del mismo tipo y tamaño |
 
-Se probaron ocho familias de modelos, desde reglas muy simples hasta modelos complejos. Los dos mejores obtuvieron
+Se probaron nueve familias de modelos, desde reglas muy simples hasta una red neuronal. Los dos mejores obtuvieron
 resultados prácticamente idénticos; se entrega el que ganó con el criterio fijado antes de empezar, y el segundo
 queda como alternativa más ligera si el coste de cálculo fuera importante.
 

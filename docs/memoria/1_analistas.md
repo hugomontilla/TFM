@@ -51,8 +51,14 @@ razones, ambas medidas en los datos:
 
 ![Elasticidad del precio a la capacidad por ciudad: va de 0,55 en Bangkok a 1,12 en Ciudad del Cabo](figuras/notebooks/nb0_c013_0.png)
 
-*Figura 1. La capacidad no vale lo mismo en cada ciudad: la pendiente log-log entre capacidad y precio se duplica de
-Bangkok a Ciudad del Cabo. Fuente: 0-INTRODUCCION, §3.*
+*Figura 1. La capacidad no vale lo mismo en cada ciudad. Fuente: 0-INTRODUCCION, §3.*
+
+ La longitud de cada barra es la pendiente de una recta ajustada entre `log(price)` y `log(accommodates)` por cada ciudad. En escala log-log esa pendiente es una **elasticidad**. Una pendiente de 1 significa que el precio crece en
+proporción a las plazas (doblar huéspedes dobla el precio); por debajo de 1, cada plaza extra vale menos que la
+anterior. La medida se eligió porque **la divisa no le afecta**: pasar de una moneda a otra multiplica todos los
+precios de la ciudad por una constante, lo que desplaza la recta en vertical pero no cambia su inclinación. 
+Son diferencias descriptivas, sin contraste formal, y en parte reflejan la distinta composición del inventario de cada
+ciudad; para la decisión basta con que el orden de magnitud cambie.
 
 Se eligió **Nueva York** porque es la única ciudad con `district` completo (en las otras nueve la columna está vacía),
 la que sitúa cada anuncio con más detalle (220 barrios), tiene
@@ -111,19 +117,19 @@ listings.csv ─► 0-INTRODUCCION (alcance: Nueva York)
 
 - **Extracción:** filtrado de Nueva York (37.012 anuncios y 847.727 reseñas, enlazadas por `listing_id`).
 - **Calidad (sin mirar el precio):** sin duplicados de extracción; 11 anuncios idénticos salvo el identificador
-  (alojamientos distintos de un mismo edificio, se conservan); 13 anuncios con capacidad 0 y 15 con precio nulo o 0, eliminados (un precio nulo no es una observacións).
+  (alojamientos distintos de un mismo edificio, se conservan); 13 anuncios con capacidad 0 y 15 con precio nulo o 0, eliminados (un precio nulo no es una observación válida).
 - **Precios de bloqueo:** se excluyen precios ≥ 9.999$ y habitaciones a más de 1.000$ la noche (48 anuncios del train y 14 del test), con umbrales fijados en el train. Se descartó recortar por el percentil 99 (850$) porque eliminaba el 18,8% de los pisos para 9 o más huéspedes, es decir, el lujo legítimo que el modelo debe aprender. Resultado: **36.922 anuncios válidos, 29.538 en train y 7.384 en test**.
 - **Transformación:** toda la preparación está en `PreparadorListings` (`scripts/preparacion_datos.py`), con
   `fit`/`transform` ajustado **solo con el train** y congelado en `data/modelado/preparador.json`. Aprende la
   ventana de amenities, los tipos de propiedad frecuentes y las medianas para imputar dormitorios.
-- **Variables construidas:** `es_estudio` (el 70% de los pisos enteros sin dato de dormitorios lleva *studio* en el título, y cuestan un 12% menos que un piso de un dormitorio de igual capacidad, por eso al imputar ``bedrooms`` a 1 añadimos esta variable); `host_ambito` (dónde vive el anfitrión, normalizado desde texto libre); `dist_centro_km` `n_anuncios_ny` (tamaño de la cartera del anfitrion); `reputacion_cartera` (puntuación media de los *otros* anuncios del anfitrión, disponible al publicar); y 56 amenities binarias con prevalencia entre el 3,5% y el 97% (criterio ciego al precio), las que aparecen en mas del 97% y menos del 3.5% no aportan informacion al estar presentes (o no presentes) en la mayoria de anuncios.
+- **Variables construidas:** `es_estudio` (el 70% de los pisos enteros sin dato de dormitorios lleva *studio* en el título, y cuestan un 12% menos que un piso de un dormitorio de igual capacidad, por eso al imputar ``bedrooms`` a 1 añadimos esta variable); `host_ambito` (dónde vive el anfitrión, normalizado desde texto libre); `dist_centro_km` (distancia al centro); `n_anuncios_ny` (tamaño de la cartera del anfitrión); `reputacion_cartera` (puntuación media de los *otros* anuncios del anfitrión, disponible al publicar); y 56 amenities binarias con prevalencia entre el 3,5% y el 97% (criterio ciego al precio): las que aparecen en más del 97% o en menos del 3,5% de los anuncios apenas varían y no aportan información.
 
 ### 3.3 Partición y validación
 
 - **Agrupada por anfitrión.** El 38,1% de los anuncios pertenece a anfitriones con varios pisos y el 23,7% tiene un
   "gemelo" en su cartera (mismo tipo, capacidad, dormitorios y barrio). Partir por filas dejaría gemelos a ambos
   lados y el error saldría optimista; es una fuga reconocida en la literatura sobre datos jerárquicos (Roberts et al.,
-  2017; Kapoor y Narayanan, 2023).
+  2017; Kapoor y Narayanan, 2023; referencias completas en el apéndice H).
 - **Estratificada por `room_type` × `district`.** En 50 particiones simuladas, sin estratificar el test llegaba a tener el doble de habitaciones de hotel de las esperadas; con el estrato combinado la desviación queda por debajo
   de 0,1 puntos en las 18 celdas.
 - **Test del 20%, semilla 42, guardado con huella MD5** en `data/particion/`. El script se niega a sobrescribirlo.
@@ -133,10 +139,11 @@ listings.csv ─► 0-INTRODUCCION (alcance: Nueva York)
 
 ### 3.4 Protocolo de experimentación
 
-- **Escalera de complejidad:** referencias ingenuas → lineal → kNN y árbol → Random Forest y HGB → SVR y CatBoost.
+- **Escalera de complejidad:** referencias ingenuas → lineal → kNN y árbol → Random Forest y HGB → SVR y CatBoost,
+  más una red neuronal (MLP) como contraste.
   Cada peldaño responde a una pregunta (cuánto aporta el producto, la ubicación, la no linealidad).
 - **Reglas de decisión fijadas antes de mirar los resultados**, recogidas en la bitácora con fecha: la regla de selección de variables, la de elección del modelo final (menor RMSE medio de CV en el escenario B) y el margen de equivalencia práctica (±0,005 de RMSE en log).
-- **Registro de todos los experimentos**, también los que salieron mal: más de 500 experimentos en `outputs/experimentos.csv`, una fila por fold, con variables, hiperparámetros y tiempos.
+- **Registro de todos los experimentos**, también los que salieron mal: más de 500 experimentos en `outputs/experimentos.csv` y 75 de la red neuronal en `outputs/experimentos_mlp.csv`, una fila por fold, con variables, hiperparámetros y tiempos.
 - **Todo lo que aprende de los datos va dentro del `Pipeline`** de cada fold (codificaciones, imputación, escalado).
 
 
@@ -156,7 +163,7 @@ listings.csv ─► 0-INTRODUCCION (alcance: Nueva York)
 - **Estadística:** statsmodels (OLS con errores agrupados).
 - **Datos mixtos:** prince (FAMD) y una implementación propia de PCAmix.
 - **Visualización:** matplotlib y seaborn.
-- **Cómputo:** Google Colab con GPU, para repetir la búsqueda de CatBoost como prueba de velocidad.
+- **Red neuronal:** PyTorch, entrenada en Google Colab con GPU (`notebooks/Entrenamiento Google Colab/`).
 
 ---
 
@@ -190,7 +197,7 @@ Mann-Whitney con corrección de Holm, Spearman), ocultando celdas con menos de 3
 - **La lectura marginal engaña** (Figura 4): la densidad de huéspedes por dormitorio correlaciona positivamente con
   el precio (ρ = +0,38), pero a igual capacidad más dormitorios es más precio en todos los tramos.
 - **Señales menores:** la reserva inmediata se asocia a un precio un 7% más bajo a igual producto y zona; los
-  anuncios sin tiempo de respuesta (inactivos, la mitad del train) piden un 18% más; los superhosts no cobran más, suponemos que tienen una mayor rotacion.
+  anuncios sin tiempo de respuesta (inactivos, la mitad del train) piden un 18% más; los superhosts no cobran más (suponemos que compiten por rotación, no por precio).
 
 ![Mapa hexagonal del precio mediano en Nueva York: más caro en el sur y centro de Manhattan](figuras/notebooks/nb2_c066_0.png)
 
@@ -218,27 +225,30 @@ las condiciones de reserva no aportan. Fuente: 3-MODELADO, §5.*
 
 **Coeficientes hedónicos.** Una OLS interpretable, con errores estándar agrupados por anfitrión, permite leer
 asociaciones condicionadas en porcentaje del precio: una habitación privada cuesta un 40% menos que un piso entero
-comparable; cada dormitorio suma un 16% y cada huésped un 9%.  Agrupar los errores por anfitrión los hace 1,5 veces mayores y evita declarar significativossiete efectos que no lo son. Entre las amenities, las de edificio o vivienda de gama alta (gimnasio,chimenea) se asocian a primas de alrededor del 20%, y las de cocina básica y estancia larga, a precios algo menores.
+comparable; cada dormitorio suma un 16% y cada huésped un 9%.  Agrupar los errores por anfitrión los hace 1,5 veces mayores y evita declarar significativos siete efectos que no lo son. Entre las amenities, las de edificio o vivienda de gama alta (gimnasio, chimenea) se asocian a primas de alrededor del 20%, y las de cocina básica y estancia larga, a precios algo menores.
 
 
-Los diagnósticos de la OLS (Figura 7) muestran heterocedasticidad, una cola derecha pesada (anuncios mucho más caros
+Los diagnósticos de la OLS (Figura 6) muestran heterocedasticidad, una cola derecha pesada (anuncios mucho más caros
 de lo predicho: el lujo que las variables no ven) y manchas espaciales en los residuos. Es el hueco que deben cubrir
 los modelos no lineales con las coordenadas.
 
 ![Residuos frente a ajustados, QQ-plot y residuo medio en el mapa de la OLS](figuras/notebooks/nb3_c029.png)
 
-*Figura 7. La OLS deja una cola de anuncios caros sin explicar y estructura espacial en los residuos. Fuente:
+*Figura 6. La OLS deja una cola de anuncios caros sin explicar y estructura espacial en los residuos. Fuente:
 3-MODELADO, §5.3.*
 
 **Modelos no lineales y ensembles.** La Tabla 1 resume la comparación con los mismos 5 folds.
 
-*Tabla 1. Comparación de modelos en CV (5 folds, escenario B). Fuente: `outputs/experimentos.csv`.*
+*Tabla 1. Comparación de modelos en CV (5 folds, escenario B). Fuente: `outputs/experimentos.csv` y, para la red
+neuronal, `outputs/experimentos_mlp.csv`.*
 
 | Modelo | Variables | RMSE log (media ± sd) | R² log | Mediana error ($) |
 |---|---|---|---|---|
 | **CatBoost ajustado** | 79 | **0,416 ± 0,009** | 0,657 | 21,5 |
 | HGB ajustado | 79 | 0,419 ± 0,010 | 0,653 | 21,5 |
+| Red neuronal MLP (media de 5 semillas) | 71 | 0,426 ± 0,010 | 0,642 | 22,2 |
 | Random Forest ajustado | 79 | 0,428 ± 0,012 | 0,638 | 22,0 |
+| Red neuronal MLP | 71 | 0,430 ± 0,011 | 0,635 | 22,5 |
 | SVR (kernel Nystroem) | 79 | 0,432 ± 0,012 | 0,631 | 22,7 |
 | Lineal (Lasso) | 79 | 0,434 ± 0,009 | 0,627 | 22,6 |
 | Árbol de decisión (prepoda) | 79 | 0,472 ± 0,014 | 0,560 | 23,8 |
@@ -254,13 +264,26 @@ La lectura de la escalera es que **la mayor parte de la señal ya la recoge el m
 4,3% del mejor. Lo que añaden los *boosting* son no linealidades e interacciones (la ubicación fina, la cola de
 capacidad), y eso basta para ser los mejores con claridad.
 
+**Red neuronal (MLP).** Como contraste se entrenó en Colab (GPU) un perceptrón multicapa con el mismo train y los
+mismos 5 folds (`notebooks/Entrenamiento Google Colab/`; el notebook se guardó sin salidas y no hace falta volver a
+ejecutarlo, porque los resultados están fold a fold en `outputs/experimentos_mlp.csv`). Se hizo una búsqueda aleatoria
+de 60 candidatos (capas, activación, *dropout*, tasa de aprendizaje, *weight decay*, tamaño de lote y forma de meter
+el barrio) y los 5 mejores se repitieron con dos semillas más para no elegir por suerte. La red elegida (capas
+256-128-64, SiLU, *dropout* 0,2 y un *embedding* de 16 dimensiones para el barrio) llega a 0,430, y la media de 5
+semillas a 0,426: queda al nivel del Random Forest y **pierde con los dos *boosting* en los 5 folds** (frente a HGB,
+Δ = 0,011 la red y 0,007 el promedio; p de Nadeau-Bengio 0,006 y 0,048). Es lo esperado en datos tabulares de este
+tamaño (Grinsztajn et al., 2022). Usa las 71 variables de una selección anterior, no las 79 vigentes. Con el SVR,
+pasar de 71 a 79 variables mejoró 0,004, menos que la distancia con HGB, así que la conclusión no cambia. No se llevó
+al test.
+
 ### 5.3 Elección del modelo final
 
 La regla fijada es elegir el **menor RMSE medio de CV en el escenario B**: **CatBoost** (0,4162 frente a 0,4191 de HGB). La ventaja es consistente (CatBoost gana en los 5 folds) pero pequeña:
 Δ = 0,0029, menos que un error estándar. Un **TOST pareado** con margen ±0,005 (fijado antes de calcular) concluye que
-ambos son **equivalentes en la práctica** (IC 90% de la diferencia [−0,0042; −0,0016], p = 0,012). Por eso se
-presentan dos finalistas: **CatBoost como modelo de referencia y el que se entrega**, y **HGB como alternativa
-equivalente y unas 20 veces más rápida** de entrenar.
+ambos son **equivalentes en la práctica** (IC 90% de la diferencia [−0,0042; −0,0016], p = 0,012, con la t pareada;
+con la corrección de Nadeau-Bengio el IC se ensancha a [−0,0048; −0,0009] y p = 0,040, y la conclusión se mantiene).
+Por eso se presentan dos finalistas: **CatBoost como modelo de referencia y el que se entrega**, y **HGB como
+alternativa equivalente y unas 15 veces más rápida** de entrenar.
 
 ### 5.4 Resultados en el test
 
@@ -287,7 +310,7 @@ obtienen por *bootstrap* remuestreando **anfitriones** (2.000 réplicas).
 Los cuantiles 0,1 y 0,9 sin calibrar cubrían solo el 72% en la calibración: los cuantiles extremos quedan demasiado cerca del centro en datos nuevos. La **regresión cuantílica conformal** (CQR) los ensancha lo justo.
 
 - **Cobertura en el test:** 77,9% (CatBoost, IC 72,3-81,5) y 79,0% (HGB). Anchura mediana: 94$.
-- **Por distrito:** Manhattan se queda corto (73,7%) y tiene los intervalos más anchos (125$), es la ciudad con mayor lujo es normal que su rango sea el mayor; Brooklyn y Queens cubren el 81-83%.
+- **Por distrito:** Manhattan se queda corto (73,7%) y tiene los intervalos más anchos (125$): es el distrito con más lujo, así que es normal que su rango sea el mayor. Brooklyn y Queens cubren el 81-82%.
 - **Por quintil de precio:** 84-88% en los quintiles centrales, **55,9% en el más caro**. El quintil se define con el precio real, lo que favorece mecánicamente peor cobertura en los extremos.
 
 ### 5.6 Dónde se equivoca el modelo
@@ -303,13 +326,13 @@ Los cuantiles 0,1 y 0,9 sin calibrar cubrían solo el 72% en la calibración: lo
 | Habitaciones de hotel (57 anuncios) | 175 |
 | Quintil de precio más caro | 154 |
 
-- **Los 20 peores errores son pisos enteros de más de 1.490$ y que han infravalorados**, prácticamente los mismos en los dos modelos. El peor es un anuncio de 6.500$ que se predice en 460$: para el modelo es un piso de 7 huéspedes y 3 dormitorios como cualquier otro, a parte de esos atributos no se detecta el lujo del piso.
+- **Los 20 peores errores son pisos enteros de más de 1.490$ infravalorados**, prácticamente los mismos en los dos modelos. El peor es un anuncio de 6.500$ que se predice en 460$: para el modelo es un piso de 7 huéspedes y 3 dormitorios como cualquier otro; aparte de esos atributos, nada en los datos delata el lujo del piso.
 - **Sensibilidad a la cola:** sin los precios por encima del percentil 99 del train (794$, 81 anuncios), el RMSE baja a 0,395 y el MAE a 39,1$. La cola explica unos 11$ del MAE.
-- **Sin sesgo espacial claro** (Figura 8): los residuos grandes están repartidos por Manhattan y Brooklyn, donde hay más anuncios y precios más altos.
+- **Sin sesgo espacial claro** (Figura 7): los residuos grandes están repartidos por Manhattan y Brooklyn, donde hay más anuncios y precios más altos.
 
 ![Mapa de residuos y error absoluto de CatBoost en el test](figuras/notebooks/nb4_c038.png)
 
-*Figura 8. Los errores de CatBoost no forman manchas geográficas: la ubicación está bien capturada. Fuente:
+*Figura 7. Los errores de CatBoost no forman manchas geográficas: la ubicación está bien capturada. Fuente:
 4-MODELO_FINAL, §6.1.*
 
 ---
@@ -337,12 +360,12 @@ La selección solo decide las variables del lineal y del kNN, a los que una vari
 
 **Importancia por permutación.** Se mide en validación (no en train) y por bloques, porque las variables de ubicación
 están correlacionadas entre sí y su importancia individual se reparte. El orden es el mismo en todas las familias de
-modelos (Figura 9): producto ≫ ubicación > anfitrión ≈ amenities ≫ condiciones de reserva. En el test, con
+modelos (Figura 8): producto ≫ ubicación > anfitrión ≈ amenities ≫ condiciones de reserva. En el test, con
 CatBoost: producto 0,29, ubicación 0,11, anfitrión y amenities ≈ 0,05, condiciones 0,004.
 
 ![Importancia por permutación de cada bloque en todos los modelos](figuras/notebooks/nb3_c100.png)
 
-*Figura 9. Todas las familias usan la misma información y en el mismo orden: el producto domina. Fuente:
+*Figura 8. Todas las familias usan la misma información y en el mismo orden: el producto domina. Fuente:
 3-MODELADO, §12.*
 
 Variable a variable (CatBoost, validación), encabezan `accommodates` (0,067), `room_type` (0,061), `bedrooms`
@@ -350,13 +373,13 @@ Variable a variable (CatBoost, validación), encabezan `accommodates` (0,067), `
 porque premia variables continuas con muchos cortes que no generalizan (`n_anuncios_ny` era la 4.ª por impureza y la
 9.ª por permutación).
 
-**SHAP.** El SHAP nativo de CatBoost (Figura 10) confirma el orden: `room_type` (0,125) y
+**SHAP.** El SHAP nativo de CatBoost (Figura 9) confirma el orden: `room_type` (0,125) y
 `accommodates` (0,120) son las variables que más contribuyen. La contribución de la capacidad crece casi linealmente,
 de −0,25 con un huésped a cerca de +1,0 con dieciséis.
 
 ![SHAP medio por variable y SHAP de accommodates frente a su valor](figuras/notebooks/nb4_c046.png)
 
-*Figura 10. Tipo de alojamiento y capacidad son las variables que más contribuyen a cada predicción. Fuente:
+*Figura 9. Tipo de alojamiento y capacidad son las variables que más contribuyen a cada predicción. Fuente:
 4-MODELO_FINAL, §7.1.*
 
 Permutación y SHAP describen **cómo usa el modelo** cada variable, no un efecto causal sobre el precio.
@@ -370,14 +393,14 @@ Búsqueda aleatoria sobre los 5 folds de la primera repetición, con cada candid
 | CatBoost | 10 | `depth` 7, `learning_rate` 0,083, `l2_leaf_reg` 10,8, hasta 3.000 iteraciones con parada temprana a 65 sobre un 10% del train del fold; categóricas nativas con *ordered target statistics* |
 | HGB | 40 | `learning_rate` 0,0225, `max_iter` 1.448, `max_leaf_nodes` 15, `min_samples_leaf` 156, `l2_regularization` 0,10, `max_features` 0,5; barrio con `TargetEncoder` |
 
-**El óptimo es plano** en los dos *boosting* (Figura 11): en HGB, los seis mejores candidatos están entre 0,4191 y
+**El óptimo es plano** en los dos *boosting* (Figura 10): en HGB, los seis mejores candidatos están entre 0,4191 y
 0,4205 con configuraciones muy distintas; lo que comparten es árboles pequeños y regularizados. En CatBoost, las ocho
 mejores configuraciones caben en 0,002, menos que la desviación entre folds. Por eso el RMSE de CV del ganador es algo
 optimista (se elige sobre los mismos folds), y por eso existe el test.
 
 ![RMSE de los 40 candidatos de HGB frente a cada hiperparámetro](figuras/notebooks/nb3_c077.png)
 
-*Figura 11. Solo la tasa de aprendizaje muestra una tendencia clara; el resto de hiperparámetros apenas mueve el
+*Figura 10. Solo la tasa de aprendizaje muestra una tendencia clara; el resto de hiperparámetros apenas mueve el
 error. Fuente: 3-MODELADO, §9.3.*
 
 **Codificación del barrio.** Con 220 barrios (la mitad con menos de 30 anuncios) se compararon tres opciones en HGB:
@@ -387,18 +410,21 @@ statistics*, que evita que el precio de un anuncio entre en su propia codificaci
 
 ### 6.3 Eficiencia de ejecución
 
-- **Reentrenamiento final con todo el train:** CatBoost unos **220 s**, HGB unos **10 s** (≈ 20 veces más rápido).
+- **Reentrenamiento final con todo el train:** CatBoost unos **325 s**, HGB unos **21 s** (≈ 15 veces más rápido).
 - **Por fold en CV:** HGB ajustado unos 7-8 s; el ganador de HGB podía sustituirse por un candidato que tarda 1,3 s
-  con solo un 0,1% más de error. Los tiempos de CatBoost en CV se midieron con folds en paralelo y no son comparables.
-- **Predicción:** inmediata en los dos).
+  con solo un 0,2% más de error. Los tiempos de CatBoost en CV se midieron con folds en paralelo y no son comparables.
+- **Predicción:** inmediata en los dos.
 - **Coste del plan completo:** del orden de 5 horas de cómputo tras recortar la búsqueda de CatBoost y la ablación. Los resultados se guardan en el registro y no se recalculan al reejecutar los notebooks.
-- **GPU:** CatBoost en Colab acelera la búsqueda, pero no reproduce exactamente la CPU (otra discretización); el resultado oficial es el de CPU, expiro la sesion de Google Collab.
+- **GPU:** se intentó repetir la búsqueda de CatBoost en Colab con GPU como prueba de velocidad, pero la sesión
+  expiró antes de terminar, y además la GPU no reproduce exactamente la CPU (otra discretización); el resultado oficial
+  es el de CPU. Colab sí se usó para la red neuronal: unos 16 s por fold la red y 68 s el promedio de 5 semillas, y
+  menos de una hora de GPU para los 75 experimentos.
 
 ### 6.4 Ventajas e inconvenientes
 
 | | CatBoost (referencia) | HGB (alternativa) |
 |---|---|---|
-| **Ventajas** | Menor RMSE de CV, gana en los 5 folds; categóricas nativas sin fuga de la codificación; SHAP nativo | 20 veces más rápido; incluido en scikit-learn (sin dependencia adicional); mismo rendimiento en test |
+| **Ventajas** | Menor RMSE de CV, gana en los 5 folds; categóricas nativas sin fuga de la codificación; SHAP nativo | 15 veces más rápido; incluido en scikit-learn (sin dependencia adicional); mismo rendimiento en test |
 | **Inconvenientes** | Más lento; se ajusta más al train (0,318 frente a 0,416 de CV) sin generalizar mejor en test | Barrio con `TargetEncoder`, cuyo *cross-fitting* interno es por filas y no por anfitrión (efecto pequeño, se declara) |
 
 ### 6.5 Limitaciones que se declaran

@@ -84,5 +84,5 @@ pip install -r requirements.txt
 ```
 
 Requiere Python 3.13 (versiones usadas: scikit-learn 1.9, pandas 3.0, catboost 1.2). Los modelos guardados con
-`joblib` solo cargan con la misma versión de scikit-learn. El entrenamiento de CatBoost se puede repetir en GPU con
-`Entrenamiento Google Colab/`.
+`joblib` solo cargan con la misma versión de scikit-learn. La red neuronal (MLP) se entrenó en GPU con
+`notebooks/Entrenamiento Google Colab/`; sus resultados están en `outputs/experimentos_mlp.csv`.
