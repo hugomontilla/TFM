@@ -1,0 +1,2 @@
+Diapositiva 4: Añadir una diapositiva para la decision de usar log price en lugar de el precio en  bruto y rellenar un pco
+Diapositiva 5: Hablar un poco mas de los nulos, como ya vimos en el global district era casi nulo en sus totalidad aqui en nueva york esta completo, algunos valores de precios irreales y 

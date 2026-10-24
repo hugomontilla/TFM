@@ -3,7 +3,7 @@
 Uso, desde la raíz del repositorio:
     python scripts/generar_pdf_memoria.py
 
-Une portada, índice, documentación para analistas, para el sponsor y apéndices en un HTML con
+Une portada, índice, documentación para analistas, para el sponsor, apéndices y agradecimientos en un HTML con
 docs/memoria/estilo/memoria.css y lo imprime a PDF con Microsoft Edge en modo headless. Si PyMuPDF está instalado,
 hace una segunda pasada para poner los números de página en el índice. El estilo está descrito en
 docs/memoria/_estilo_pdf.md.
@@ -25,15 +25,16 @@ DIR_ESTILO = DIR_MEMORIA / 'estilo'
 PDF_SALIDA = DIR_MEMORIA / 'pdf' / 'memoria_TFM.pdf'
 
 PORTADA = {
-    'titulo': 'Predicción del precio de Airbnb en Nueva York',
-    'subtitulo': 'Un precio de partida para cada anuncio nuevo',
+    'titulo': 'Predicción del precio en Nueva York',
+    'subtitulo': 'Un precio de partida para cada alojamiento nuevo en Airbnb',
     'autor': 'Hugo Montilla',
-    'fecha': 'Octubre de 2026',
+    'fecha': '17 de octubre de 2026',
 }
 PARTES = [
     ('analistas', '1_analistas.md'),
     ('sponsor', '2_sponsor.md'),
     ('apendices', '3_apendices.md'),
+    ('agradecimientos', '4_agradecimientos.md'),
 ]
 RUTAS_EDGE = [
     Path(r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'),

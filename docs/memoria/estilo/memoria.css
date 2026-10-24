@@ -22,6 +22,7 @@
 @page analistas { @top-right { content: "Documentación para analistas"; font: 8pt Arial, sans-serif; color: var(--granate); } }
 @page sponsor { @top-right { content: "Documentación para el sponsor"; font: 8pt Arial, sans-serif; color: var(--granate); } }
 @page apendices { @top-right { content: "Apéndices"; font: 8pt Arial, sans-serif; color: var(--granate); } }
+@page agradecimientos { @top-right { content: "Agradecimientos"; font: 8pt Arial, sans-serif; color: var(--granate); } }
 
 html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body {
@@ -63,6 +64,7 @@ body {
 .parte.analistas { page: analistas; }
 .parte.sponsor { page: sponsor; }
 .parte.apendices { page: apendices; }
+.parte.agradecimientos { page: agradecimientos; }
 
 h1, h2, h3, h4 { break-after: avoid; font-weight: normal; }
 h1 {
